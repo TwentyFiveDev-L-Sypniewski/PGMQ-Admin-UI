@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "extraKnownMarketplaces": {
+    "my-toolkit": {
+      "source": {
+        "source": "github",
+        "repo": "L-Sypniewski/claude-code-toolkit"
+      }
+    }
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/install-plugins.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/setup-dev-environment.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(curl:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet run:*)",
+      "Bash(gh repo view:*)",
+      "Bash(mkdir:*)",
+      "Bash(npm install)",
+      "Bash(npm run lint)",
+      "Bash(npm run type-check:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npx wrangler deployments:*)",
+      "mcp__cloudflare-docs__search_cloudflare_documentation",
+      "mcp__cloudflare-workers__accounts_list",
+      "mcp__cloudflare-workers__set_active_account",
+      "mcp__cloudflare-workers__workers_builds_list_builds",
+      "mcp__cloudflare-workers__workers_builds_set_active_worker",
+      "mcp__cloudflare-workers__workers_get_worker",
+      "mcp__cloudflare-workers__workers_list",
+      "mcp__context7__get-library-docs",
+      "mcp__context7__resolve-library-id",
+      "mcp__github__create_branch",
+      "mcp__github__get_file_contents",
+      "mcp__github__search_repositories",
+      "mcp__microsoft-docs__microsoft_docs_fetch",
+      "mcp__microsoft-docs__microsoft_docs_search",
+      "mcp__sequential-thinking__sequentialthinking",
+      "mcp__sequentialthinking__sequentialthinking",
+      "Read(//home/gombka/Pictures/Screenshots/**)",
+      "Read(//tmp/claude-code-toolkit/**)",
+      "WebFetch(domain:developers.cloudflare.com)",
+      "WebFetch(domain:docs.astro.build)",
+      "WebFetch(domain:docs.github.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.meziantou.net)",
+      "WebSearch"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "playwright",
+    "sequentialthinking",
+    "context7",
+    "github"
+  ]
+}

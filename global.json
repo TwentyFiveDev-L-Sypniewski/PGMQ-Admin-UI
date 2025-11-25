@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/global.json",
+  "sdk": {
+    "version": "10.0.100",
+    "rollForward": "latestMajor",
+    "allowPrerelease": true
+  },
+  "test": {
+    "runner": "Microsoft.Testing.Platform"
+  },
+  "_comment": "rollForward setting: Allows using a newer SDK version if the exact version isn't found. 'latestMajor' allows any newer major version (e.g., 11.x if 10.0.100 isn't available). This ensures builds work in CI/CD without requiring exact SDK version match."
+}
