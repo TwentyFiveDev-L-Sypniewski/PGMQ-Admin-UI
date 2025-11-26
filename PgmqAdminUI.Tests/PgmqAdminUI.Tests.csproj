@@ -20,7 +20,6 @@
     <PackageReference Include="Testcontainers.PostgreSql" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="bUnit" />
-    <PackageReference Include="bUnit.web" />
     <PackageReference Include="AwesomeAssertions" />
   </ItemGroup>
 
