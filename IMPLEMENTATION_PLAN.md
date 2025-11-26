@@ -5,6 +5,7 @@
 This document outlines a high-level implementation plan for a **Blazor Server-Side Rendered (SSR) admin UI** for managing PostgreSQL Message Queue (PGMQ) instances. Built with **.NET 10**, it will provide queue management, message inspection, and basic operations via a single-page admin dashboard running as a sidecar container.
 
 **Target Stack:**
+
 - **Backend:** ASP.NET Core 10 (Blazor Server SSR)
 - **Database Access:** Npgmq 1.5.0+ (PGMQ .NET client)
 - **UI Components:** Microsoft Fluent UI Blazor 4.13.1+ (free, open-source)
@@ -17,26 +18,26 @@ This document outlines a high-level implementation plan for a **Blazor Server-Si
 ### High-Level Components
 
 ┌─────────────────────────────────────┐
-│  User Browser                       │
-│  (Admin Dashboard)                  │
+│ User Browser │
+│ (Admin Dashboard) │
 └────────┬────────────────────────────┘
-         │ HTTP / WebSocket (Blazor)
-         │
+│ HTTP / WebSocket (Blazor)
+│
 ┌────────▼────────────────────────────┐
-│  Blazor Server App (.NET 10)        │
-│  ├─ Razor Pages/Components          │
-│  ├─ Backend Services (C#)           │
-│  ├─ PGMQ API Layer                  │
-│  └─ Dependency Injection            │
+│ Blazor Server App (.NET 10) │
+│ ├─ Razor Pages/Components │
+│ ├─ Backend Services (C#) │
+│ ├─ PGMQ API Layer │
+│ └─ Dependency Injection │
 └────────┬────────────────────────────┘
-         │ Npgmq (async PGMQ operations)
-         │
+│ Npgmq (async PGMQ operations)
+│
 ┌────────▼────────────────────────────┐
-│  PostgreSQL Instance (PGMQ Ext.)    │
-│  ├─ pgmq.meta (queue metadata)      │
-│  ├─ pgmq.q_* (queue tables)         │
-│  ├─ pgmq.a_* (archive tables)       │
-│  └─ PGMQ Functions                  │
+│ PostgreSQL Instance (PGMQ Ext.) │
+│ ├─ pgmq.meta (queue metadata) │
+│ ├─ pgmq.q*\* (queue tables) │
+│ ├─ pgmq.a*\* (archive tables) │
+│ └─ PGMQ Functions │
 └─────────────────────────────────────┘
 
 ### Deployment Model
@@ -55,28 +56,29 @@ This document outlines a high-level implementation plan for a **Blazor Server-Si
 
 ### Core Framework
 
-| Component | Version | Purpose | Docs |
-|-----------|---------|---------|------|
-| **.NET** | 10.0 LTS | Runtime & SDK | [.NET 10 Announcement](https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-10) |
-| **ASP.NET Core** | 10.0 | Web framework | [ASP.NET Core 10 Docs](https://learn.microsoft.com/en-us/aspnet/core/?view=aspnetcore-10.0) |
-| **Blazor Server** | 10.0 | UI rendering (SSR) | [Blazor Server Guide](https://learn.microsoft.com/en-us/aspnet/core/blazor/hosting-models?view=aspnetcore-10.0#blazor-server) |
+| Component         | Version  | Purpose            | Docs                                                                                                                          |
+| ----------------- | -------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| **.NET**          | 10.0 LTS | Runtime & SDK      | [.NET 10 Announcement](https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-10)                                     |
+| **ASP.NET Core**  | 10.0     | Web framework      | [ASP.NET Core 10 Docs](https://learn.microsoft.com/en-us/aspnet/core/?view=aspnetcore-10.0)                                   |
+| **Blazor Server** | 10.0     | UI rendering (SSR) | [Blazor Server Guide](https://learn.microsoft.com/en-us/aspnet/core/blazor/hosting-models?view=aspnetcore-10.0#blazor-server) |
 
 ### Database & PGMQ Client
 
-| Package | Version | Purpose | Docs |
-|---------|---------|---------|------|
-| **Npgmq** | 1.5.0+ | .NET client library for PGMQ (wraps Npgsql, auto JSON serialization) | [Npgmq GitHub](https://github.com/brianpursley/Npgmq) |
-| **Npgsql** | 10.0.0+ | PostgreSQL ADO.NET provider (dependency of Npgmq) | [Npgsql Docs](https://www.npgsql.org) |
+| Package    | Version | Purpose                                                              | Docs                                                  |
+| ---------- | ------- | -------------------------------------------------------------------- | ----------------------------------------------------- |
+| **Npgmq**  | 1.5.0+  | .NET client library for PGMQ (wraps Npgsql, auto JSON serialization) | [Npgmq GitHub](https://github.com/brianpursley/Npgmq) |
+| **Npgsql** | 10.0.0+ | PostgreSQL ADO.NET provider (dependency of Npgmq)                    | [Npgsql Docs](https://www.npgsql.org)                 |
 
 ### UI Components
 
-| Package | Version | Tier | Pros | Cons | Docs |
-|---------|---------|------|------|------|------|
+| Package                        | Version | Tier     | Pros                                                                | Cons                                  | Docs                                                |
+| ------------------------------ | ------- | -------- | ------------------------------------------------------------------- | ------------------------------------- | --------------------------------------------------- |
 | **Microsoft Fluent UI Blazor** | 4.13.1+ | Free/OSS | Modern design, free, Fluent Design System, DataGrid, buttons, forms | Still evolving (v5 coming early 2025) | [Fluent UI Blazor](https://www.fluentui-blazor.net) |
 
 **Selected:** **Microsoft Fluent UI Blazor** 4.13.1+ (free, OSS, actively maintained by Microsoft).
 
 **Why Fluent UI?**
+
 - ✅ Free and open-source (zero license costs)
 - ✅ Native Blazor Web Components (performant, no JavaScript overhead)
 - ✅ FluentDataGrid with built-in sorting, filtering, pagination
@@ -108,6 +110,7 @@ dotnet add package Microsoft.FluentUI.AspNetCore.Components
 **Views & Components (using Fluent UI Blazor):**
 
 1. **Queues Overview Page**
+
    - List all queues from connected Postgres instance (via Npgmq)
    - Display: queue name, total message count, in-flight count, archived count
    - Action buttons: create queue, delete queue, view detail
@@ -115,6 +118,7 @@ dotnet add package Microsoft.FluentUI.AspNetCore.Components
    - **Tech:** Razor page + FluentDataGrid (with sorting/filtering)
 
 2. **Queue Detail Page**
+
    - Tabs: "Messages", "Archived", "Metrics" using FluentTabs
    - **Messages Tab:**
      - Paginated FluentDataGrid of queue messages fetched via Npgmq.ReadAsync()
@@ -136,6 +140,7 @@ dotnet add package Microsoft.FluentUI.AspNetCore.Components
 ### Phase 2: Operations & Settings
 
 4. **Queue Operations**
+
    - Create Queue dialog: name, VT, delay, max size
    - Delete Queue confirmation
    - Purge Queue (clear all messages)
@@ -143,6 +148,7 @@ dotnet add package Microsoft.FluentUI.AspNetCore.Components
    - **Tech:** FluentDialog, FluentButton, FluentTextField form validation
 
 5. **Search & Filters**
+
    - Full-text search over queue names
    - Filter by queue type (regular, partitioned, DLQ)
    - JSON message body search (via `message->>'field'` in SQL)
@@ -159,39 +165,40 @@ dotnet add package Microsoft.FluentUI.AspNetCore.Components
 ### Folder Layout
 
 PgmqBlazorUI/
-├── Program.cs                      # DI, middleware setup
-├── appsettings.json                # Config (DB conn string)
+├── Program.cs # DI, middleware setup
+├── appsettings.json # Config (DB conn string)
 ├── Pages/
-│   ├── Index.razor                 # Dashboard overview
-│   ├── QueueDetail.razor           # Single queue view
-│   └── Layout.razor                # Shared layout
+│ ├── Index.razor # Dashboard overview
+│ ├── QueueDetail.razor # Single queue view
+│ └── Layout.razor # Shared layout
 ├── Components/
-│   ├── QueueGrid.razor             # Reusable grid component
-│   ├── MessageForm.razor           # Send message form
-│   └── Notifications.razor         # Toast/alerts
+│ ├── QueueGrid.razor # Reusable grid component
+│ ├── MessageForm.razor # Send message form
+│ └── Notifications.razor # Toast/alerts
 ├── Services/
-│   ├── IPgmqService.cs             # Interface
-│   ├── PgmqService.cs              # Implementation (Npgsql calls)
-│   └── PgmqModels.cs               # DTOs (Queue, Message, etc.)
+│ ├── IPgmqService.cs # Interface
+│ ├── PgmqService.cs # Implementation (Npgsql calls)
+│ └── PgmqModels.cs # DTOs (Queue, Message, etc.)
 ├── Data/
-│   ├── PgmqContext.cs              # Optional EF Core DbContext
-│   └── Migrations/
-└── Dockerfile                      # Docker image definition
+│ ├── PgmqContext.cs # Optional EF Core DbContext
+│ └── Migrations/
+└── Dockerfile # Docker image definition
 
 ### Sample Service Interface (PgmqService.cs)
 
 public interface IPgmqService
 {
-    Task<IEnumerable<QueueDto>> ListQueuesAsync(CancellationToken ct = default);
-    Task<QueueDetailDto> GetQueueDetailAsync(string queueName, int page, int pageSize, CancellationToken ct = default);
-    Task<string> SendMessageAsync(string queueName, string jsonMessage, int? delaySeconds = null, CancellationToken ct = default);
-    Task<bool> DeleteMessageAsync(string queueName, string msgId, CancellationToken ct = default);
-    Task<bool> ArchiveMessageAsync(string queueName, string msgId, CancellationToken ct = default);
-    Task<bool> CreateQueueAsync(string queueName, int vt = 30, int delay = 0, CancellationToken ct = default);
-    Task<bool> DeleteQueueAsync(string queueName, CancellationToken ct = default);
+Task<IEnumerable<QueueDto>> ListQueuesAsync(CancellationToken ct = default);
+Task<QueueDetailDto> GetQueueDetailAsync(string queueName, int page, int pageSize, CancellationToken ct = default);
+Task<string> SendMessageAsync(string queueName, string jsonMessage, int? delaySeconds = null, CancellationToken ct = default);
+Task<bool> DeleteMessageAsync(string queueName, string msgId, CancellationToken ct = default);
+Task<bool> ArchiveMessageAsync(string queueName, string msgId, CancellationToken ct = default);
+Task<bool> CreateQueueAsync(string queueName, int vt = 30, int delay = 0, CancellationToken ct = default);
+Task<bool> DeleteQueueAsync(string queueName, CancellationToken ct = default);
 }
 
 **Implementation:** Uses Npgmq client library to:
+
 - Wrap `NpgmqClient` for queue operations (send, read, archive, create, delete)
 - Leverage built-in async methods from Npgmq
 - Simplifies PGMQ function calls compared to raw Npgsql
@@ -200,8 +207,8 @@ public interface IPgmqService
 **Example Npgmq usage in service:**
 public class PgmqService : IPgmqService
 {
-    private readonly NpgmqClient _pgmq;
-    private readonly ILogger<PgmqService> _logger;
+private readonly NpgmqClient \_pgmq;
+private readonly ILogger<PgmqService> \_logger;
 
     public PgmqService(string connectionString, ILogger<PgmqService> logger)
     {
@@ -237,6 +244,7 @@ public class PgmqService : IPgmqService
             return false;
         }
     }
+
 }
 
 ### Key Considerations
@@ -253,46 +261,45 @@ public class PgmqService : IPgmqService
 ### Docker Setup
 
 **Dockerfile** (multi-stage build):
+
 # Build stage
+
 FROM mcr.microsoft.com/dotnet/sdk:10 AS build
 WORKDIR /src
 COPY . .
 RUN dotnet publish -c Release -o /app/publish
 
 # Runtime stage
+
 FROM mcr.microsoft.com/dotnet/aspnet:10
 WORKDIR /app
 COPY --from=build /app/publish .
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
-ENV ConnectionStrings__Pgmq="Host=postgres;Port=5432;Database=postgres;Username=pgmq_admin;Password=secure_password"
+ENV ConnectionStrings\_\_Pgmq="Host=postgres;Port=5432;Database=postgres;Username=pgmq_admin;Password=secure_password"
 ENTRYPOINT ["dotnet", "PgmqBlazorUI.dll"]
 
 **Docker Compose** (sample):
 services:
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: pgmq_admin
-      POSTGRES_PASSWORD: secure_password
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+postgres:
+image: postgres:16-alpine
+environment:
+POSTGRES_DB: postgres
+POSTGRES_USER: pgmq_admin
+POSTGRES_PASSWORD: secure_password
+ports: - "5432:5432"
+volumes: - postgres_data:/var/lib/postgresql/data
 
-  pgmq-ui:
-    build: .
-    ports:
-      - "8080:8080"
-    depends_on:
-      - postgres
-    environment:
-      ConnectionStrings__Pgmq: "Host=postgres;Port=5432;Database=postgres;Username=pgmq_admin;Password=secure_password"
-    restart: unless-stopped
+pgmq-ui:
+build: .
+ports: - "8080:8080"
+depends_on: - postgres
+environment:
+ConnectionStrings\_\_Pgmq: "Host=postgres;Port=5432;Database=postgres;Username=pgmq_admin;Password=secure_password"
+restart: unless-stopped
 
 volumes:
-  postgres_data:
+postgres_data:
 
 ### Environment Configuration
 
@@ -306,14 +313,16 @@ volumes:
 ## Development Roadmap
 
 ### Step 1: Project Setup (Day 1)
+
 - [ ] Create new `dotnet new blazor` project (.NET 10)
 - [ ] Install NuGet packages: `Npgmq`, `Microsoft.FluentUI.AspNetCore.Components`
 - [ ] Set up `appsettings.json` with Postgres connection string (support both local Docker and remote)
 - [ ] Add connection string to Program.cs DI via `AddNpgsqlConnection()` or manual string configuration
-- [ ] Create `IPgmqService` interface and `PgmqService` wrapper around Npgmq client
+- [ ] Create `PgmqService` wrapper around Npgmq client
 - **Docs:** [Create Blazor app](https://learn.microsoft.com/en-us/aspnet/core/blazor/tooling?view=aspnetcore-10.0)
 
 ### Step 2: Backend Service Layer (Day 2–3)
+
 - [ ] Create `PgmqService` class wrapping NpgmqClient instance from Npgmq package
 - [ ] Implement core methods: ListQueuesAsync(), SendMessageAsync(), ArchiveMessageAsync(), DeleteMessageAsync(), GetQueueStatsAsync()
 - [ ] Write DTOs: QueueDto, MessageDto, QueueDetailDto, QueueStatsDto
@@ -323,6 +332,7 @@ volumes:
 - **Docs:** [Npgmq GitHub](https://github.com/brianpursley/Npgmq), [Npgmq Usage Examples](https://github.com/brianpursley/Npgmq#usage)
 
 ### Step 3: UI Components (Day 4–5)
+
 - [ ] Build "Queues Overview" Razor page with FluentDataGrid (fetch via PgmqService.ListQueuesAsync())
 - [ ] Build "Queue Detail" Razor page with FluentTabs (Messages/Archived/Metrics tabs)
 - [ ] Build "Send Message" modal dialog with FluentTextField (queue, JSON body), FluentButton (Send)
@@ -332,6 +342,7 @@ volumes:
 - **Docs:** [Fluent UI Blazor](https://www.fluentui-blazor.net), [DataGrid API](https://learn.microsoft.com/en-us/fluent-ui/web-components/components/data-grid)
 
 ### Step 4: Polish & Deployment (Day 6)
+
 - [ ] Add `/health` endpoint: returns 200 if Postgres/PGMQ is reachable
 - [ ] Test with both local Docker Postgres and remote instance (via env var override)
 - [ ] Configure Docker build (multi-stage) & Docker Compose with optional Postgres service
@@ -345,32 +356,38 @@ volumes:
 ## Key Links & Resources
 
 ### Official Documentation
+
 - [.NET 10 Release Notes](https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-10)
 - [ASP.NET Core 10 Docs](https://learn.microsoft.com/en-us/aspnet/core/?view=aspnetcore-10.0)
 - [Blazor Server Guide](https://learn.microsoft.com/en-us/aspnet/core/blazor/hosting-models?view=aspnetcore-10.0#blazor-server)
 - [Blazor Performance Best Practices](https://learn.microsoft.com/en-us/aspnet/core/blazor/performance/?view=aspnetcore-10.0)
 
 ### Database & ORM
+
 - [Npgsql Official Docs](https://www.npgsql.org)
 - [Npgsql + Entity Framework Core](https://www.npgsql.org/doc/usage/entity-framework-core.html)
 - [PGMQ GitHub Repository](https://github.com/pgmq/pgmq)
 - [PGMQ Supabase Docs](https://supabase.com/docs/guides/database/extensions/pgmq)
 
 ### UI Components & Styling
+
 - [Microsoft Fluent UI Blazor](https://www.fluentui-blazor.net)
 - [Fluent UI DataGrid Component](https://learn.microsoft.com/en-us/fluent-ui/web-components/components/data-grid)
 - [Fluent UI Blazor Components & Examples](https://github.com/microsoft/fluentui-blazor)
 
 ### Blazor Learning & Patterns
+
 - [Build Your First Blazor App](https://learn.microsoft.com/en-us/aspnet/core/blazor/tutorials/build-a-blazor-app?view=aspnetcore-10.0)
 - [Blazor Dependency Injection](https://learn.microsoft.com/en-us/aspnet/core/blazor/fundamentals/dependency-injection?view=aspnetcore-10.0)
 - [Blazor Form Validation](https://learn.microsoft.com/en-us/aspnet/core/blazor/forms-validation?view=aspnetcore-10.0)
 
 ### Deployment & DevOps
+
 - [Docker & ASP.NET Core](https://learn.microsoft.com/en-us/dotnet/core/docker/build-container)
 - [Docker Compose for .NET](https://learn.microsoft.com/en-us/dotnet/core/docker/docker-compose)
 
 ### Blog Posts & Tutorials
+
 - [Blazor & .NET 10 Developer's Guide](https://www.gapvelocity.ai/blog/blazor-dotnet-10-a-developers-guide)
 - [.NET 10 – Everything You NEED to KNOW](https://www.youtube.com/watch?v=AbD4XST2Pcw&vl=en)
 - [ASP.NET Core & Blazor in .NET 10](https://www.youtube.com/watch?v=xZ26KwGHWE0)
@@ -380,6 +397,7 @@ volumes:
 ## Notes for AI Agent
 
 ### Next Steps (Agent Handoff)
+
 1. **Scaffold the project structure** using the folder layout above
 2. **Implement PgmqService** with Npgsql calls for core operations (list queues, send/read/delete messages)
 3. **Build Razor pages** (Index, QueueDetail) with Blazor Bootstrap Grid for message display
@@ -388,12 +406,14 @@ volumes:
 6. **Polish UX** with animations, dark mode, and accessibility features
 
 ### Assumptions
+
 - ✅ PGMQ extension is already installed on Postgres instance (local or remote)
 - ✅ User has `.NET 10 SDK` installed locally for development
 - ✅ Postgres connection string is provided via environment variable or appsettings.json
 - ✅ Reverse proxy (Traefik, Caddy, nginx) or simple auth middleware handles API security (optional)
 
 ### Success Criteria
+
 - ✅ UI displays queue list and messages fetched from live Postgres/PGMQ instance
 - ✅ Can create, delete, send, archive messages via the dashboard
 - ✅ Runs in Docker and connects to Postgres (both local Docker and remote instances)
