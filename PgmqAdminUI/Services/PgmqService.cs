@@ -3,7 +3,7 @@ using PgmqAdminUI.Models;
 
 namespace PgmqAdminUI.Services;
 
-public class PgmqService
+public partial class PgmqService
 {
     private readonly NpgmqClient _pgmq;
     private readonly ILogger<PgmqService> _logger;
@@ -29,7 +29,7 @@ public class PgmqService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to list queues");
+            LogListQueuesFailed(ex);
             throw;
         }
     }
@@ -38,7 +38,7 @@ public class PgmqService
     {
         try
         {
-            var messages = await _pgmq.ReadBatchAsync<string>(queueName, vt: 0, batchSize: pageSize, ct).ConfigureAwait(false);
+            var messages = await _pgmq.ReadBatchAsync<string>(queueName, vt: 0, limit: pageSize, ct).ConfigureAwait(false);
 
             return new QueueDetailDto
             {
@@ -58,7 +58,7 @@ public class PgmqService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to get queue detail for {QueueName}", queueName);
+            LogGetQueueDetailFailed(ex, queueName);
             throw;
         }
     }
@@ -69,12 +69,12 @@ public class PgmqService
         {
             var delay = delaySeconds ?? 0;
             var msgId = await _pgmq.SendAsync(queueName, jsonMessage, delay, ct).ConfigureAwait(false);
-            _logger.LogInformation("Message {MsgId} sent to {QueueName}", msgId, queueName);
+            LogMessageSent(msgId, queueName);
             return msgId;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send message to {QueueName}", queueName);
+            LogSendMessageFailed(ex, queueName);
             throw;
         }
     }
@@ -88,7 +88,7 @@ public class PgmqService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to delete message {MsgId} from {QueueName}", msgId, queueName);
+            LogDeleteMessageFailed(ex, msgId, queueName);
             return false;
         }
     }
@@ -97,12 +97,12 @@ public class PgmqService
     {
         try
         {
-            var archived = await _pgmq.ArchiveAsync(queueName, [msgId], ct).ConfigureAwait(false);
-            return archived.Count > 0;
+            var archived = await _pgmq.ArchiveAsync(queueName, msgId, ct).ConfigureAwait(false);
+            return archived;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to archive message {MsgId} from {QueueName}", msgId, queueName);
+            LogArchiveMessageFailed(ex, msgId, queueName);
             return false;
         }
     }
@@ -112,11 +112,11 @@ public class PgmqService
         try
         {
             await _pgmq.CreateQueueAsync(queueName, ct).ConfigureAwait(false);
-            _logger.LogInformation("Queue {QueueName} created", queueName);
+            LogQueueCreated(queueName);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create queue {QueueName}", queueName);
+            LogCreateQueueFailed(ex, queueName);
             throw;
         }
     }
@@ -126,13 +126,44 @@ public class PgmqService
         try
         {
             await _pgmq.DropQueueAsync(queueName, ct).ConfigureAwait(false);
-            _logger.LogInformation("Queue {QueueName} deleted", queueName);
+            LogQueueDeleted(queueName);
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to delete queue {QueueName}", queueName);
+            LogDeleteQueueFailed(ex, queueName);
             return false;
         }
     }
+
+    // High-performance logging using source generation
+    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to list queues")]
+    partial void LogListQueuesFailed(Exception ex);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to get queue detail for {QueueName}")]
+    partial void LogGetQueueDetailFailed(Exception ex, string queueName);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Message {MsgId} sent to {QueueName}")]
+    partial void LogMessageSent(long msgId, string queueName);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to send message to {QueueName}")]
+    partial void LogSendMessageFailed(Exception ex, string queueName);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to delete message {MsgId} from {QueueName}")]
+    partial void LogDeleteMessageFailed(Exception ex, long msgId, string queueName);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to archive message {MsgId} from {QueueName}")]
+    partial void LogArchiveMessageFailed(Exception ex, long msgId, string queueName);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Queue {QueueName} created")]
+    partial void LogQueueCreated(string queueName);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to create queue {QueueName}")]
+    partial void LogCreateQueueFailed(Exception ex, string queueName);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Queue {QueueName} deleted")]
+    partial void LogQueueDeleted(string queueName);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to delete queue {QueueName}")]
+    partial void LogDeleteQueueFailed(Exception ex, string queueName);
 }
