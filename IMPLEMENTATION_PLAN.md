@@ -6,9 +6,9 @@ This document outlines a high-level implementation plan for a **Blazor Server-Si
 
 **Target Stack:**
 - **Backend:** ASP.NET Core 10 (Blazor Server SSR)
-- **Database Access:** Npgsql 10.0.0 + Entity Framework Core
-- **UI Components:** Blazor Bootstrap or Syncfusion DataGrid
-- **Deployment:** Docker container with internal Postgres connectivity
+- **Database Access:** Npgmq 1.5.0+ (PGMQ .NET client)
+- **UI Components:** Microsoft Fluent UI Blazor 4.13.1+ (free, open-source)
+- **Deployment:** Docker container with configurable Postgres connectivity (local or remote)
 
 ---
 
@@ -29,7 +29,7 @@ This document outlines a high-level implementation plan for a **Blazor Server-Si
 │  ├─ PGMQ API Layer                  │
 │  └─ Dependency Injection            │
 └────────┬────────────────────────────┘
-         │ Npgsql / SQL
+         │ Npgmq (async PGMQ operations)
          │
 ┌────────▼────────────────────────────┐
 │  PostgreSQL Instance (PGMQ Ext.)    │
@@ -42,10 +42,12 @@ This document outlines a high-level implementation plan for a **Blazor Server-Si
 ### Deployment Model
 
 - **Single Blazor Server container** runs the admin UI (port 8080).
-- **Internal network connectivity** to Postgres (hostname: `postgres`, port 5432).
-- **Stateless backend** – all state in Postgres.
-- **Health check endpoint** (e.g., `/health`) pings Postgres PGMQ availability.
-- **Environment config** via Docker env vars (connection string, auth settings).
+- **Configurable Postgres connectivity** (local Docker network OR remote instance):
+  - Local (Docker Compose): `Host=postgres;Port=5432`
+  - Remote: `Host=your.postgres.host;Port=5432;Username=user;Password=pass`
+- **Stateless backend** – all state in Postgres (can scale horizontally).
+- **Health check endpoint** (e.g., `/health`) verifies Postgres/PGMQ reachability.
+- **Environment config** via Docker env vars (connection string, optional API key for admin access).
 
 ---
 
@@ -63,8 +65,8 @@ This document outlines a high-level implementation plan for a **Blazor Server-Si
 
 | Package | Version | Purpose | Docs |
 |---------|---------|---------|------|
-| **Npgmq** | 1.5.0+ | .NET client library for PGMQ | [Npgmq GitHub](https://github.com/brianpursley/Npgmq) |
-| **Npgsql.DependencyInjection** | 10.0.0+ | DI setup for Npgsql connections | [Npgsql DI Docs](https://www.nuget.org/packages/Npgsql.DependencyInjection/) |
+| **Npgmq** | 1.5.0+ | .NET client library for PGMQ (wraps Npgsql, auto JSON serialization) | [Npgmq GitHub](https://github.com/brianpursley/Npgmq) |
+| **Npgsql** | 10.0.0+ | PostgreSQL ADO.NET provider (dependency of Npgmq) | [Npgsql Docs](https://www.npgsql.org) |
 
 ### UI Components
 
@@ -72,15 +74,15 @@ This document outlines a high-level implementation plan for a **Blazor Server-Si
 |---------|---------|------|------|------|------|
 | **Microsoft Fluent UI Blazor** | 4.13.1+ | Free/OSS | Modern design, free, Fluent Design System, DataGrid, buttons, forms | Still evolving (v5 coming early 2025) | [Fluent UI Blazor](https://www.fluentui-blazor.net) |
 
-**Selected:** **Fluent UI Blazor** for MVP – Microsoft-maintained, free, modern Fluent Design System, includes DataGrid component with sorting/filtering out-of-the-box, no license costs.
+**Selected:** **Microsoft Fluent UI Blazor** 4.13.1+ (free, OSS, actively maintained by Microsoft).
 
 **Why Fluent UI?**
-- Free and open-source (no licensing)
-- Native Blazor Web Components (performant)
-- DataGrid with built-in sorting, column templates
-- Consistent with modern Microsoft design language
-- Active maintenance and community support
-- Can use FluentDataGrid, FluentButton, FluentTextField, FluentDialog for all UI needs
+- ✅ Free and open-source (zero license costs)
+- ✅ Native Blazor Web Components (performant, no JavaScript overhead)
+- ✅ FluentDataGrid with built-in sorting, filtering, pagination
+- ✅ Complete component library: FluentButton, FluentTextField, FluentTabs, FluentDialog, FluentMessageBox
+- ✅ Consistent with modern Microsoft Fluent Design System
+- ✅ Active maintenance and Microsoft backing
 
 ### Additional Libraries (Sample .csproj)
 
@@ -106,29 +108,30 @@ dotnet add package Microsoft.FluentUI.AspNetCore.Components
 **Views & Components (using Fluent UI Blazor):**
 
 1. **Queues Overview Page**
-   - List all queues from `pgmq.meta`
-   - Display: queue name, message count (total, in-flight, archived)
+   - List all queues from connected Postgres instance (via Npgmq)
+   - Display: queue name, total message count, in-flight count, archived count
    - Action buttons: create queue, delete queue, view detail
-   - Sort/filter by name or message count
-   - **Tech:** Blazor component + FluentDataGrid
+   - Sort/filter by name or message count (FluentDataGrid built-in features)
+   - **Tech:** Razor page + FluentDataGrid (with sorting/filtering)
 
 2. **Queue Detail Page**
    - Tabs: "Messages", "Archived", "Metrics" using FluentTabs
    - **Messages Tab:**
-     - Paginated table of `pgmq.q_<queue>` rows
-     - Columns: msg_id, message (JSON, truncated), vt, created_at, read_ct
-     - Actions per row: delete, archive, requeue, extend visibility
+     - Paginated FluentDataGrid of queue messages fetched via Npgmq.ReadAsync()
+     - Columns: msg_id, message (JSON, truncated with pretty-print toggle), vt (visibility), created_at, read_ct
+     - Actions per row: delete, archive, requeue, extend visibility timeout
    - **Archived Tab:**
-     - Similar view for `pgmq.a_<queue>` (archived messages)
+     - Similar grid view for archived messages
    - **Metrics Tab:**
-     - Simple stats: total sent, total received, active messages
-   - **Tech:** Blazor components + FluentDataGrid + JSON.NET for parsing
+     - Simple KPI cards: total sent, total received, active messages, oldest unread age
+   - **Tech:** Razor component + FluentDataGrid + FluentTabs + JSON prettify utility
 
 3. **Send Message Form**
-   - Input: queue name, message (JSON text area), optional delay
-   - Button: "Send Message" (calls `pgmq.send()`)
-   - Success/error toast notification
-   - **Tech:** Blazor form + EditForm validation + FluentMessageBox
+   - Input: queue name, message (JSON text area with syntax highlighting), optional delay in seconds
+   - Validation: queue must exist, message must be valid JSON
+   - Button: "Send Message" (calls Npgmq.SendAsync())
+   - Success/error notification via FluentMessageBox
+   - **Tech:** Razor component + EditForm + JSON validator + Npgmq client
 
 ### Phase 2: Operations & Settings
 
@@ -304,33 +307,37 @@ volumes:
 
 ### Step 1: Project Setup (Day 1)
 - [ ] Create new `dotnet new blazor` project (.NET 10)
-- [ ] Install Npgmq, Npgsql.DependencyInjection, Microsoft.FluentUI.AspNetCore.Components NuGet packages
-- [ ] Set up `appsettings.json` with Postgres connection
-- [ ] Create `PgmqService` interface and stub implementation wrapping Npgmq
+- [ ] Install NuGet packages: `Npgmq`, `Microsoft.FluentUI.AspNetCore.Components`
+- [ ] Set up `appsettings.json` with Postgres connection string (support both local Docker and remote)
+- [ ] Add connection string to Program.cs DI via `AddNpgsqlConnection()` or manual string configuration
+- [ ] Create `IPgmqService` interface and `PgmqService` wrapper around Npgmq client
 - **Docs:** [Create Blazor app](https://learn.microsoft.com/en-us/aspnet/core/blazor/tooling?view=aspnetcore-10.0)
 
 ### Step 2: Backend Service Layer (Day 2–3)
-- [ ] Initialize NpgmqClient in Program.cs DI with Npgsql.DependencyInjection
-- [ ] Implement `PgmqService` wrapping Npgmq calls (ListQueuesAsync, SendAsync, ArchiveAsync, etc.)
-- [ ] Write DTOs (QueueDto, MessageDto, QueueDetailDto models)
-- [ ] Add error handling & logging
-- [ ] Unit test service layer with mock NpgmqClient
-- **Docs:** [Npgmq GitHub](https://github.com/brianpursley/Npgmq), [Npgsql.DependencyInjection](https://www.nuget.org/packages/Npgsql.DependencyInjection/)
+- [ ] Create `PgmqService` class wrapping NpgmqClient instance from Npgmq package
+- [ ] Implement core methods: ListQueuesAsync(), SendMessageAsync(), ArchiveMessageAsync(), DeleteMessageAsync(), GetQueueStatsAsync()
+- [ ] Write DTOs: QueueDto, MessageDto, QueueDetailDto, QueueStatsDto
+- [ ] Add structured logging with ILogger<PgmqService> for all operations
+- [ ] Implement error handling: convert Postgres/Npgmq exceptions to user-friendly messages
+- [ ] Unit test service layer with real connection string (integration tests against test Postgres instance)
+- **Docs:** [Npgmq GitHub](https://github.com/brianpursley/Npgmq), [Npgmq Usage Examples](https://github.com/brianpursley/Npgmq#usage)
 
 ### Step 3: UI Components (Day 4–5)
-- [ ] Build "Queues Overview" Razor page + FluentDataGrid with sorting/filtering
-- [ ] Build "Queue Detail" Razor page with FluentTabs (messages/archived/metrics)
-- [ ] Build "Send Message" form with FluentTextField, FluentButton validation
-- [ ] Add navigation and breadcrumbs
-- [ ] Implement FluentMessageBox notifications for success/errors
-- **Docs:** [Fluent UI Blazor DataGrid](https://learn.microsoft.com/en-us/fluent-ui/web-components/components/data-grid), [Fluent UI Blazor Components](https://www.fluentui-blazor.net)
+- [ ] Build "Queues Overview" Razor page with FluentDataGrid (fetch via PgmqService.ListQueuesAsync())
+- [ ] Build "Queue Detail" Razor page with FluentTabs (Messages/Archived/Metrics tabs)
+- [ ] Build "Send Message" modal dialog with FluentTextField (queue, JSON body), FluentButton (Send)
+- [ ] Add global navigation header with status indicator (Postgres connection: online/offline)
+- [ ] Implement FluentMessageBox for notifications (success, error, warning)
+- [ ] Add JSON pretty-print toggle on message detail view
+- **Docs:** [Fluent UI Blazor](https://www.fluentui-blazor.net), [DataGrid API](https://learn.microsoft.com/en-us/fluent-ui/web-components/components/data-grid)
 
 ### Step 4: Polish & Deployment (Day 6)
-- [ ] Add health check endpoint
-- [ ] Optimize queries (add indexes on PGMQ tables if needed)
-- [ ] Configure Docker build & compose
-- [ ] Test in sidecar deployment scenario
-- [ ] Add basic CSS styling (dark mode support with .NET 10 defaults)
+- [ ] Add `/health` endpoint: returns 200 if Postgres/PGMQ is reachable
+- [ ] Test with both local Docker Postgres and remote instance (via env var override)
+- [ ] Configure Docker build (multi-stage) & Docker Compose with optional Postgres service
+- [ ] Test UI against live queue operations (send/read/archive cycle)
+- [ ] Add error messages for common failures (connection failed, queue not found, invalid JSON)
+- [ ] Polish styling: Fluent UI dark/light mode support, responsive layout
 - **Docs:** [Blazor Performance](https://learn.microsoft.com/en-us/aspnet/core/blazor/performance/?view=aspnetcore-10.0)
 
 ---
@@ -381,14 +388,16 @@ volumes:
 6. **Polish UX** with animations, dark mode, and accessibility features
 
 ### Assumptions
-- Postgres instance is reachable at `postgres:5432` (Docker internal DNS)
-- PGMQ extension is already installed on Postgres
-- User has `.NET 10 SDK` installed locally for development
-- Reverse proxy (Traefik, Caddy, or nginx) handles auth/TLS if needed
+- ✅ PGMQ extension is already installed on Postgres instance (local or remote)
+- ✅ User has `.NET 10 SDK` installed locally for development
+- ✅ Postgres connection string is provided via environment variable or appsettings.json
+- ✅ Reverse proxy (Traefik, Caddy, nginx) or simple auth middleware handles API security (optional)
 
 ### Success Criteria
-- UI displays queue list and messages from live Postgres/PGMQ
-- Can create, delete, and send messages via the dashboard
-- Runs in Docker as a sidecar container
-- Health check endpoint responds 200 when Postgres is up
-- No hardcoded secrets; all config via environment variables
+- ✅ UI displays queue list and messages fetched from live Postgres/PGMQ instance
+- ✅ Can create, delete, send, archive messages via the dashboard
+- ✅ Runs in Docker and connects to Postgres (both local Docker and remote instances)
+- ✅ `/health` endpoint returns 200 when Postgres/PGMQ is reachable
+- ✅ All config (connection string, API key) via environment variables; zero hardcoded secrets
+- ✅ Connection string supports Docker internal DNS (`postgres:5432`) AND remote hosts
+- ✅ Error messages displayed for connection failures, invalid operations
