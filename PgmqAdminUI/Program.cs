@@ -1,7 +1,7 @@
 using Microsoft.FluentUI.AspNetCore.Components;
 using PgmqAdminUI.Components;
-using PgmqAdminUI.Features.Messages;
 using PgmqAdminUI.Features.Queues;
+using MessageService = PgmqAdminUI.Features.Messages.MessageService;
 
 var builder = WebApplication.CreateBuilder(args);
 
