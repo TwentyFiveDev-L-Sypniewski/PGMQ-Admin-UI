@@ -3,7 +3,7 @@ using PgmqAdminUI.Components;
 using PgmqAdminUI.Features.Queues;
 using MessageService = PgmqAdminUI.Features.Messages.MessageService;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateSlimBuilder(args);
 
 // Add Aspire service defaults (telemetry, service discovery, resilience)
 builder.AddServiceDefaults();
