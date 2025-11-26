@@ -312,24 +312,61 @@ postgres_data:
 
 ## Development Roadmap
 
-### Step 1: Project Setup (Day 1)
+**Current Status:** Step 1 complete, Step 2 partially complete. Project is buildable and ready for UI development.
 
-- [ ] Create new `dotnet new blazor` project (.NET 10)
-- [ ] Install NuGet packages: `Npgmq`, `Microsoft.FluentUI.AspNetCore.Components`
-- [ ] Set up `appsettings.json` with Postgres connection string (support both local Docker and remote)
-- [ ] Add connection string to Program.cs DI via `AddNpgsqlConnection()` or manual string configuration
-- [ ] Create `PgmqService` wrapper around Npgmq client
+**Progress Summary:**
+- ✅ **Step 1:** Project Setup - COMPLETE
+- 🟨 **Step 2:** Backend Service Layer - PARTIALLY COMPLETE (core services done, need metrics & tests)
+- ⬜ **Step 3:** UI Components - NOT STARTED
+- 🟨 **Step 4:** Polish & Deployment - PARTIALLY COMPLETE (infrastructure done, need testing & polish)
+
+---
+
+### Step 1: Project Setup ✅ **COMPLETED**
+
+- [x] Create new `dotnet new blazor` project (.NET 10)
+- [x] Install NuGet packages: `Npgmq`, `Microsoft.FluentUI.AspNetCore.Components`
+- [x] Set up `appsettings.json` with Postgres connection string (support both local Docker and remote)
+- [x] Add connection string to Program.cs DI via `AddNpgsqlConnection()` or manual string configuration
+- [x] Create service wrappers around Npgmq client
+- [x] Add Dockerfile for production deployment
+- [x] Create .NET Aspire AppHost for local development orchestration
 - **Docs:** [Create Blazor app](https://learn.microsoft.com/en-us/aspnet/core/blazor/tooling?view=aspnetcore-10.0)
 
-### Step 2: Backend Service Layer (Day 2–3)
+**Implementation Notes:**
+- ✅ Full Blazor Server SSR project scaffolded with .NET 10
+- ✅ Npgmq 1.6.0, Microsoft.FluentUI.AspNetCore.Components 4.13.1 installed
+- ✅ Central package management via Directory.Packages.props
+- ✅ **Vertical Slice Architecture** implemented (Features/Queues, Features/Messages) instead of traditional Services/Models layering
+- ✅ QueueService and MessageService created with NpgmqClient integration
+- ✅ DTOs created: QueueDto, QueueDetailDto, MessageDto
+- ✅ Program.cs configured with DI, Fluent UI, and Aspire service defaults
+- ✅ AppHost.cs configured with PostgreSQL + PGMQ extension (Tembo pg18-pgmq v1.7.0) and PgAdmin
+- ✅ Multi-stage Dockerfile with health checks
+- ✅ Build succeeds: 0 warnings, 0 errors
+- 🎯 **Architecture Decision:** No IPgmqService interface (follows AGENTS.md: "No interfaces for single implementations")
 
-- [ ] Create `PgmqService` class wrapping NpgmqClient instance from Npgmq package
-- [ ] Implement core methods: ListQueuesAsync(), SendMessageAsync(), ArchiveMessageAsync(), DeleteMessageAsync(), GetQueueStatsAsync()
-- [ ] Write DTOs: QueueDto, MessageDto, QueueDetailDto, QueueStatsDto
-- [ ] Add structured logging with ILogger<PgmqService> for all operations
-- [ ] Implement error handling: convert Postgres/Npgmq exceptions to user-friendly messages
-- [ ] Unit test service layer with real connection string (integration tests against test Postgres instance)
+### Step 2: Backend Service Layer (Day 2–3) - **PARTIALLY COMPLETE**
+
+- [x] Create `QueueService` class wrapping NpgmqClient instance from Npgmq package
+- [x] Create `MessageService` class wrapping NpgmqClient instance from Npgmq package
+- [x] Implement core methods: ListQueuesAsync(), SendMessageAsync(), ArchiveMessageAsync(), DeleteMessageAsync()
+- [x] Write DTOs: QueueDto, MessageDto, QueueDetailDto
+- [x] Add structured logging with ILogger for all operations (using LoggerMessage source generators)
+- [x] Implement error handling: try-catch with logging in all service methods
+- [ ] Implement GetQueueStatsAsync() for metrics (total/in-flight/archived counts, oldest unread age)
+- [ ] Write QueueStatsDto
+- [ ] Unit test QueueService with FakeItEasy mocks
+- [ ] Unit test MessageService with FakeItEasy mocks
+- [ ] Integration tests against test Postgres instance using Testcontainers
 - **Docs:** [Npgmq GitHub](https://github.com/brianpursley/Npgmq), [Npgmq Usage Examples](https://github.com/brianpursley/Npgmq#usage)
+
+**Implementation Notes:**
+- ✅ Services use vertical slice architecture (Features/Queues, Features/Messages)
+- ✅ Concrete classes without interfaces (follows AGENTS.md guidance)
+- ✅ LoggerMessage source generators for high-performance logging
+- ✅ Virtual methods for test mocking without interfaces
+- ⏳ **Remaining:** Queue metrics/stats functionality, comprehensive test coverage
 
 ### Step 3: UI Components (Day 4–5)
 
@@ -341,15 +378,21 @@ postgres_data:
 - [ ] Add JSON pretty-print toggle on message detail view
 - **Docs:** [Fluent UI Blazor](https://www.fluentui-blazor.net), [DataGrid API](https://learn.microsoft.com/en-us/fluent-ui/web-components/components/data-grid)
 
-### Step 4: Polish & Deployment (Day 6)
+### Step 4: Polish & Deployment (Day 6) - **PARTIALLY COMPLETE**
 
-- [ ] Add `/health` endpoint: returns 200 if Postgres/PGMQ is reachable
+- [x] Add `/health` endpoint: returns 200 if Postgres/PGMQ is reachable (via Aspire MapDefaultEndpoints)
+- [x] Configure Docker build (multi-stage) with health check
+- [ ] Configure Docker Compose with optional Postgres service
 - [ ] Test with both local Docker Postgres and remote instance (via env var override)
-- [ ] Configure Docker build (multi-stage) & Docker Compose with optional Postgres service
 - [ ] Test UI against live queue operations (send/read/archive cycle)
 - [ ] Add error messages for common failures (connection failed, queue not found, invalid JSON)
 - [ ] Polish styling: Fluent UI dark/light mode support, responsive layout
 - **Docs:** [Blazor Performance](https://learn.microsoft.com/en-us/aspnet/core/blazor/performance/?view=aspnetcore-10.0)
+
+**Implementation Notes:**
+- ✅ Health checks configured via Aspire service defaults (MapDefaultEndpoints)
+- ✅ Dockerfile includes HEALTHCHECK directive
+- ⏳ **Remaining:** Docker Compose, end-to-end testing, error handling, UI polish
 
 ---
 
