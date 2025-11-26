@@ -1,0 +1,8 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+## Run pre-commit tasks (including dotnet format)
+dotnet husky run --group pre-commit
+
+## Add any formatting changes back to the staging area
+git add -u

@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="PgmqAdminUI.AppHost/PgmqAdminUI.AppHost.csproj" />
+  <Project Path="PgmqAdminUI.ServiceDefaults/PgmqAdminUI.ServiceDefaults.csproj" />
+  <Project Path="PgmqAdminUI.Tests/PgmqAdminUI.Tests.csproj" />
+  <Project Path="PgmqAdminUI/PgmqAdminUI.csproj" />
+</Solution>

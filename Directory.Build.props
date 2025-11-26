@@ -1,0 +1,39 @@
+<Project>
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>14</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <Authors>Łukasz Sypniewski</Authors>
+        <PackageProjectUrl>https://github.com/TwentyFiveDev-L-Sypniewski/PGMQ-Admin-UI</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/TwentyFiveDev-L-Sypniewski/PGMQ-Admin-UI</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <Company>Łukasz Sypniewski</Company>
+        <NoWarn>$(NoWarn);NU1507;CA1014;CA1016;IL2026;IL2104;LOGGEN036;NU1608</NoWarn>
+        <AnalysisModeStyle>All</AnalysisModeStyle>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <!--   Trimming     -->
+        <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
+        <TrimmerSingleWarn>false</TrimmerSingleWarn>
+        <PublishTrimmed>false</PublishTrimmed>
+        <!-- <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator> -->
+        <TrimMode>partial</TrimMode>
+        <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+    </PropertyGroup>
+
+    <!-- Set 'isInPipeline' variable if project is run in Act or Github Actions -->
+    <PropertyGroup>
+        <isInPipeline Condition="'$(GITHUB_ACTIONS)' == 'true' or '$(ACT)' != ''">true</isInPipeline>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(isInPipeline)' == 'true'">
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="$(MSBuildProjectName.Contains('Tests'))">
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    </PropertyGroup>
+</Project>
