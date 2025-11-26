@@ -4,11 +4,24 @@
 
 **3-Layer Testing Pyramid:**
 
-- **`PgmqAdminUI.Tests/`**: Unified test project (Unit, Integration, Component)
-  - **`Unit/`**: Fast unit tests with mocked dependencies (TUnit + FakeItEasy)
-  - **`Integration/`**: Real PostgreSQL + PGMQ operations (TUnit + Testcontainers)
-  - **`Component/`**: Blazor component tests (bUnit + TUnit)
-- **Categories**: `Unit`, `Integration`, `Component`
+- **`PgmqAdminUI.Tests/`**: Unified test project organized by feature
+  - Tests are organized by **feature/component**, not by test category
+  - Example: `Services/PgmqServiceTests.cs`, `UI/QueueGridTests.cs`, `Pages/HomeTests.cs`
+  - Each test file uses `[Property("Category", "Unit|Integration|Component")]` to mark the test category
+  - **Categories**: `Unit`, `Integration`, `Component`
+
+**Test Organization:**
+```
+PgmqAdminUI.Tests/
+├── Services/
+│   ├── PgmqServiceTests.cs          # [Property("Category", "Unit")]
+│   └── PgmqServiceIntegrationTests.cs # [Property("Category", "Integration")]
+├── UI/
+│   ├── QueueGridTests.cs            # [Property("Category", "Component")]
+│   └── MessageFormTests.cs          # [Property("Category", "Component")]
+└── Pages/
+    └── HomeTests.cs                 # [Property("Category", "Component")]
+```
 
 ## Running Tests
 
@@ -29,25 +42,30 @@ dotnet test --filter "Category=Component"
 **What:** PgmqService methods, business logic, DTOs
 **How:** Mock NpgmqClient interface with FakeItEasy
 **Speed:** Milliseconds
-**Location:** `Unit/Services/PgmqServiceTests.cs`
+**Location:** `Services/PgmqServiceTests.cs`
+**Category:** `[Property("Category", "Unit")]`
 
 **Example:**
 ```csharp
-[Test]
-public async Task SendMessageAsync_ValidQueue_ReturnsMessageId()
+[Property("Category", "Unit")]
+public class PgmqServiceTests
 {
-    // Arrange
-    var fakeClient = A.Fake<INpgmqClient>();
-    A.CallTo(() => fakeClient.SendAsync("test-queue", A<string>._, null))
-        .Returns("msg_123");
+    [Test]
+    public async Task SendMessageAsync_ValidQueue_ReturnsMessageId()
+    {
+        // Arrange
+        var fakeClient = A.Fake<INpgmqClient>();
+        A.CallTo(() => fakeClient.SendAsync("test-queue", A<string>._, null))
+            .Returns("msg_123");
 
-    var service = new PgmqService(fakeClient);
+        var service = new PgmqService(fakeClient);
 
-    // Act
-    var result = await service.SendMessageAsync("test-queue", "{\"data\":\"test\"}");
+        // Act
+        var result = await service.SendMessageAsync("test-queue", "{\"data\":\"test\"}");
 
-    // Assert
-    result.ShouldBe("msg_123");
+        // Assert
+        result.ShouldBe("msg_123");
+    }
 }
 ```
 
@@ -56,35 +74,40 @@ public async Task SendMessageAsync_ValidQueue_ReturnsMessageId()
 **What:** Real PostgreSQL + PGMQ operations, HTTP endpoints
 **How:** Testcontainers spins up PostgreSQL with PGMQ extension
 **Speed:** Seconds
-**Location:** `Integration/Services/PgmqServiceIntegrationTests.cs`
+**Location:** `Services/PgmqServiceIntegrationTests.cs`
+**Category:** `[Property("Category", "Integration")]`
 
 **Example:**
 ```csharp
-[Test]
-public async Task SendMessage_ToRealQueue_CanBeRead()
+[Property("Category", "Integration")]
+public class PgmqServiceIntegrationTests
 {
-    // Arrange - Testcontainers PostgreSQL with PGMQ
-    await using var container = new PostgreSqlBuilder()
-        .WithImage("quay.io/tembo/pg18-pgmq:latest")
-        .Build();
-    await container.StartAsync();
+    [Test]
+    public async Task SendMessage_ToRealQueue_CanBeRead()
+    {
+        // Arrange - Testcontainers PostgreSQL with PGMQ
+        await using var container = new PostgreSqlBuilder()
+            .WithImage("quay.io/tembo/pg18-pgmq:latest")
+            .Build();
+        await container.StartAsync();
 
-    var connectionString = container.GetConnectionString();
-    var pgmq = new NpgmqClient(connectionString);
+        var connectionString = container.GetConnectionString();
+        var pgmq = new NpgmqClient(connectionString);
 
-    var queueName = $"test-queue-{Guid.NewGuid()}";
-    await pgmq.CreateQueueAsync(queueName);
+        var queueName = $"test-queue-{Guid.NewGuid()}";
+        await pgmq.CreateQueueAsync(queueName);
 
-    // Act
-    var msgId = await pgmq.SendAsync(queueName, "{\"test\":\"data\"}");
-    var message = await pgmq.ReadAsync(queueName, vt: 30);
+        // Act
+        var msgId = await pgmq.SendAsync(queueName, "{\"test\":\"data\"}");
+        var message = await pgmq.ReadAsync(queueName, vt: 30);
 
-    // Assert
-    message.ShouldNotBeNull();
-    message.MsgId.ShouldBe(msgId);
+        // Assert
+        message.ShouldNotBeNull();
+        message.MsgId.ShouldBe(msgId);
 
-    // Cleanup
-    await pgmq.DeleteQueueAsync(queueName);
+        // Cleanup
+        await pgmq.DeleteQueueAsync(queueName);
+    }
 }
 ```
 
@@ -93,26 +116,31 @@ public async Task SendMessage_ToRealQueue_CanBeRead()
 **What:** Blazor components (QueueGrid, MessageForm, Pages)
 **How:** bUnit renders components, simulates button clicks, form submissions
 **Speed:** Milliseconds
-**Location:** `Component/UI/QueueGridTests.cs`
+**Location:** `UI/QueueGridTests.cs`, `Pages/HomeTests.cs`
+**Category:** `[Property("Category", "Component")]`
 
 **Note:** bUnit works with both static and interactive SSR components
 
 **Example:**
 ```csharp
-[Test]
-public void QueueGrid_RendersQueueList_DisplaysQueueNames()
+[Property("Category", "Component")]
+public class QueueGridTests
 {
-    // Arrange
-    using var ctx = new TestContext();
-    var queues = new[] { new QueueDto { Name = "test-queue", MessageCount = 5 } };
+    [Test]
+    public void QueueGrid_RendersQueueList_DisplaysQueueNames()
+    {
+        // Arrange
+        using var ctx = new TestContext();
+        var queues = new[] { new QueueDto { Name = "test-queue", MessageCount = 5 } };
 
-    // Act
-    var component = ctx.RenderComponent<QueueGrid>(parameters => parameters
-        .Add(p => p.Queues, queues));
+        // Act
+        var component = ctx.RenderComponent<QueueGrid>(parameters => parameters
+            .Add(p => p.Queues, queues));
 
-    // Assert
-    var row = component.Find("td");
-    row.TextContent.ShouldContain("test-queue");
+        // Assert
+        var row = component.Find("td");
+        row.TextContent.ShouldContain("test-queue");
+    }
 }
 ```
 
@@ -178,14 +206,16 @@ public class PostgreSqlTestContainerFixture : IAsyncInitializer
 
 ## Best Practices
 
-1. **PostgreSQL Testcontainers**: Use `quay.io/tembo/pg18-pgmq:latest` for all integration tests
-2. **Isolation**: Create/delete queues per test with unique names (no Respawn needed)
-3. **Parallelism**: Use `[NotInParallel("SharedDatabase")]` for integration tests sharing container
-4. **Naming**: Descriptive test names via method names or attributes
-5. **Assertions**: Use TUnit's built-in assertions (`ShouldBe`, `ShouldNotBeNull`, etc.)
-6. **Sociable Tests**: Exercise real PGMQ operations; avoid over-mocking
-7. **Observable Outcomes**: Verify queue state, message content - not just mock interactions
-8. **No Redundancy**: Don't duplicate integration coverage with unit tests
+1. **Feature-Based Organization**: Organize tests by feature/component, not by category (Unit/Integration/Component folders)
+2. **Category Marking**: Use `[Property("Category", "Unit|Integration|Component")]` at the class level to mark test categories
+3. **PostgreSQL Testcontainers**: Use `quay.io/tembo/pg18-pgmq:latest` for all integration tests
+4. **Isolation**: Create/delete queues per test with unique names (no Respawn needed)
+5. **Parallelism**: Use `[NotInParallel("SharedDatabase")]` for integration tests sharing container
+6. **Naming**: Descriptive test names via method names or attributes
+7. **Assertions**: Use TUnit's built-in assertions (`ShouldBe`, `ShouldNotBeNull`, etc.)
+8. **Sociable Tests**: Exercise real PGMQ operations; avoid over-mocking
+9. **Observable Outcomes**: Verify queue state, message content - not just mock interactions
+10. **No Redundancy**: Don't duplicate integration coverage with unit tests
 
 ## PGMQ Testing Patterns
 
