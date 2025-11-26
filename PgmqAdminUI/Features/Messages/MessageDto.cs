@@ -1,4 +1,4 @@
-namespace PgmqAdminUI.Models;
+namespace PgmqAdminUI.Features.Messages;
 
 public sealed class MessageDto
 {

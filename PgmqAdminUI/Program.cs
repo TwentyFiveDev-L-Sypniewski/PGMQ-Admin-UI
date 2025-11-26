@@ -1,6 +1,7 @@
 using Microsoft.FluentUI.AspNetCore.Components;
 using PgmqAdminUI.Components;
-using PgmqAdminUI.Services;
+using PgmqAdminUI.Features.Messages;
+using PgmqAdminUI.Features.Queues;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,12 +17,15 @@ builder.Services.AddHttpClient();
 // Add Fluent UI Blazor components
 builder.Services.AddFluentUIComponents();
 
-// Add PgmqService with connection string from configuration
+// Add feature services with connection string from configuration
 var connectionString = builder.Configuration.GetConnectionString("pgmq")
     ?? throw new InvalidOperationException("Connection string 'pgmq' not found.");
-builder.Services.AddSingleton(sp => new PgmqService(
+builder.Services.AddSingleton(sp => new QueueService(
     connectionString,
-    sp.GetRequiredService<ILogger<PgmqService>>()));
+    sp.GetRequiredService<ILogger<QueueService>>()));
+builder.Services.AddSingleton(sp => new MessageService(
+    connectionString,
+    sp.GetRequiredService<ILogger<MessageService>>()));
 
 // Add health checks
 builder.Services.AddHealthChecks();

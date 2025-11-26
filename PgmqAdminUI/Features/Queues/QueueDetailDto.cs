@@ -1,4 +1,6 @@
-namespace PgmqAdminUI.Models;
+using PgmqAdminUI.Features.Messages;
+
+namespace PgmqAdminUI.Features.Queues;
 
 public sealed class QueueDetailDto
 {

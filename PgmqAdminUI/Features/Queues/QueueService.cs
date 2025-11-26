@@ -1,14 +1,14 @@
 using Npgmq;
-using PgmqAdminUI.Models;
+using PgmqAdminUI.Features.Messages;
 
-namespace PgmqAdminUI.Services;
+namespace PgmqAdminUI.Features.Queues;
 
-public partial class PgmqService
+public partial class QueueService
 {
     private readonly NpgmqClient _pgmq;
-    private readonly ILogger<PgmqService> _logger;
+    private readonly ILogger<QueueService> _logger;
 
-    public PgmqService(string connectionString, ILogger<PgmqService> logger)
+    public QueueService(string connectionString, ILogger<QueueService> logger)
     {
         _pgmq = new NpgmqClient(connectionString);
         _logger = logger;
@@ -63,50 +63,6 @@ public partial class PgmqService
         }
     }
 
-    public virtual async Task<long> SendMessageAsync(string queueName, string jsonMessage, int? delaySeconds = null, CancellationToken ct = default)
-    {
-        try
-        {
-            var delay = delaySeconds ?? 0;
-            var msgId = await _pgmq.SendAsync(queueName, jsonMessage, delay, ct).ConfigureAwait(false);
-            LogMessageSent(msgId, queueName);
-            return msgId;
-        }
-        catch (Exception ex)
-        {
-            LogSendMessageFailed(ex, queueName);
-            throw;
-        }
-    }
-
-    public virtual async Task<bool> DeleteMessageAsync(string queueName, long msgId, CancellationToken ct = default)
-    {
-        try
-        {
-            var deleted = await _pgmq.DeleteAsync(queueName, msgId, ct).ConfigureAwait(false);
-            return deleted;
-        }
-        catch (Exception ex)
-        {
-            LogDeleteMessageFailed(ex, msgId, queueName);
-            return false;
-        }
-    }
-
-    public virtual async Task<bool> ArchiveMessageAsync(string queueName, long msgId, CancellationToken ct = default)
-    {
-        try
-        {
-            var archived = await _pgmq.ArchiveAsync(queueName, msgId, ct).ConfigureAwait(false);
-            return archived;
-        }
-        catch (Exception ex)
-        {
-            LogArchiveMessageFailed(ex, msgId, queueName);
-            return false;
-        }
-    }
-
     public virtual async Task CreateQueueAsync(string queueName, CancellationToken ct = default)
     {
         try
@@ -136,24 +92,11 @@ public partial class PgmqService
         }
     }
 
-    // High-performance logging using source generation
     [LoggerMessage(Level = LogLevel.Error, Message = "Failed to list queues")]
     partial void LogListQueuesFailed(Exception ex);
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Failed to get queue detail for {QueueName}")]
     partial void LogGetQueueDetailFailed(Exception ex, string queueName);
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "Message {MsgId} sent to {QueueName}")]
-    partial void LogMessageSent(long msgId, string queueName);
-
-    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to send message to {QueueName}")]
-    partial void LogSendMessageFailed(Exception ex, string queueName);
-
-    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to delete message {MsgId} from {QueueName}")]
-    partial void LogDeleteMessageFailed(Exception ex, long msgId, string queueName);
-
-    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to archive message {MsgId} from {QueueName}")]
-    partial void LogArchiveMessageFailed(Exception ex, long msgId, string queueName);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Queue {QueueName} created")]
     partial void LogQueueCreated(string queueName);
