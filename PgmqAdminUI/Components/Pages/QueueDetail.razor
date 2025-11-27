@@ -30,7 +30,10 @@
     </FluentTabs>
 </FluentStack>
 
-<SendMessageDialog @bind-IsOpen="_showSendDialog" QueueName="@QueueName" OnMessageSent="HandleMessageSent" />
+@if (_showSendDialog)
+{
+    <SendMessageDialog @bind-IsOpen="_showSendDialog" QueueName="@QueueName" OnMessageSent="HandleMessageSent" />
+}
 
 @code {
     [Parameter] public string QueueName { get; set; } = "";

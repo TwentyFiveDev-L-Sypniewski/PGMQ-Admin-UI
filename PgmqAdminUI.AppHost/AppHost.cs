@@ -5,7 +5,8 @@ var postgres = builder.AddPostgres("postgres")
     .WithImage("ghcr.io/pgmq/pg18-pgmq", "v1.7.0")
     .WithPgAdmin()
     .WithContainerName("pgmq-postgres-pgmq-admin-ui")
-    .WithDataVolume();
+    .WithDataVolume()
+    .AddDatabase("pgmq");
 
 // Blazor Admin UI
 builder.AddProject<Projects.PgmqAdminUI>("pgmq-admin-ui")

@@ -46,8 +46,15 @@
     }
 </FluentStack>
 
-<CreateQueueDialog @bind-IsOpen="_showCreateDialog" OnQueueCreated="HandleQueueCreated" />
-<DeleteQueueDialog @bind-IsOpen="_showDeleteDialog" QueueName="@_queueToDelete" OnQueueDeleted="HandleQueueDeleted" />
+@if (_showCreateDialog)
+{
+    <CreateQueueDialog @bind-IsOpen="_showCreateDialog" OnQueueCreated="HandleQueueCreated" />
+}
+
+@if (_showDeleteDialog)
+{
+    <DeleteQueueDialog @bind-IsOpen="_showDeleteDialog" QueueName="@_queueToDelete" OnQueueDeleted="HandleQueueDeleted" />
+}
 
 @code {
     private IQueryable<QueueDto>? _queues;
