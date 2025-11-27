@@ -372,15 +372,35 @@ postgres_data:
 - ✅ Integration test coverage: 15 integration tests using Testcontainers with PostgreSQL + PGMQ extension
 - ✅ Tests follow TUnit conventions with Category attributes for filtering
 
-### Step 3: UI Components (Day 4–5)
+### Step 3: UI Components (Day 4–5) - ⬜ **NOT STARTED**
 
-- [ ] Build "Queues Overview" Razor page with FluentDataGrid (fetch via PgmqService.ListQueuesAsync())
-- [ ] Build "Queue Detail" Razor page with FluentTabs (Messages/Archived/Metrics tabs)
-- [ ] Build "Send Message" modal dialog with FluentTextField (queue, JSON body), FluentButton (Send)
-- [ ] Add global navigation header with status indicator (Postgres connection: online/offline)
-- [ ] Implement FluentMessageBox for notifications (success, error, warning)
-- [ ] Add JSON pretty-print toggle on message detail view
-- **Docs:** [Fluent UI Blazor](https://www.fluentui-blazor.net), [DataGrid API](https://learn.microsoft.com/en-us/fluent-ui/web-components/components/data-grid)
+**Detailed Implementation Guide:** See [STEP_3_UI_COMPONENTS.md](./STEP_3_UI_COMPONENTS.md)
+
+**Summary:**
+- Build Blazor Server UI using Fluent UI Blazor 4.13.1
+- Create pages: Queues Overview, Queue Detail
+- Implement dialogs: Create Queue, Delete Queue, Send Message
+- Add real-time updates using Blazor Server's SignalR connection
+- Write bUnit component tests alongside implementation
+
+**Key Components:**
+- [ ] Enhanced MainLayout with navigation and status indicator
+- [ ] Queues Overview page with FluentDataGrid
+- [ ] Queue Detail page with FluentTabs (Messages/Archived/Metrics)
+- [ ] Send Message dialog with JSON validation
+- [ ] Create/Delete Queue dialogs
+- [ ] JSON Viewer component with pretty-print
+- [ ] Real-time metrics updates using PeriodicTimer
+- [ ] Notification system using FluentMessageBar
+- [ ] bUnit component tests for all major components
+
+**Backend Changes Required:**
+- [ ] Add `GetArchivedMessagesAsync()` to MessageService
+
+**Docs:**
+- [Fluent UI Blazor](https://www.fluentui-blazor.net)
+- [Blazor Forms & Validation](https://learn.microsoft.com/en-us/aspnet/core/blazor/forms-validation?view=aspnetcore-10.0)
+- [bUnit Documentation](https://bunit.dev)
 
 ### Step 4: Polish & Deployment (Day 6) - **PARTIALLY COMPLETE**
 
