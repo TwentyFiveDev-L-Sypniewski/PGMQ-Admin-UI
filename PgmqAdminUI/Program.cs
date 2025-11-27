@@ -13,7 +13,8 @@ builder.WebHost.UseKestrelHttpsConfiguration();
 builder.AddServiceDefaults();
 
 // Add services to the container.
-builder.Services.AddRazorComponents();
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
 
 // Add HttpClient (required for Blazor Server + Fluent UI)
 builder.Services.AddHttpClient();
@@ -55,6 +56,7 @@ app.UseHttpsRedirection();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
-app.MapRazorComponents<App>();
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
 
 app.Run();
