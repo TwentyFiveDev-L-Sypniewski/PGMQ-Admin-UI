@@ -1,4 +1,5 @@
 using Microsoft.FluentUI.AspNetCore.Components;
+using Npgsql;
 using PgmqAdminUI.Components;
 using PgmqAdminUI.Features.Queues;
 using MessageService = PgmqAdminUI.Features.Messages.MessageService;
@@ -33,6 +34,27 @@ builder.Services.AddSingleton(sp => new MessageService(
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();
+
+// Initialize PGMQ extension on startup
+await using (var scope = app.Services.CreateAsyncScope())
+{
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        await using var connection = new NpgsqlConnection(connectionString);
+        await connection.OpenAsync().ConfigureAwait(false);
+
+        await using var command = new NpgsqlCommand("CREATE EXTENSION IF NOT EXISTS pgmq CASCADE;", connection);
+        await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+
+        logger.LogInformation("PGMQ extension initialized successfully");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Failed to initialize PGMQ extension");
+        throw;
+    }
+}
 
 app.MapDefaultEndpoints();
 
