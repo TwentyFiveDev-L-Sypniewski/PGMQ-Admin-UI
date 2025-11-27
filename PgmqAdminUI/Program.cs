@@ -4,10 +4,7 @@ using PgmqAdminUI.Components.UI;
 using PgmqAdminUI.Features.Queues;
 using MessageService = PgmqAdminUI.Features.Messages.MessageService;
 
-var builder = WebApplication.CreateSlimBuilder(args);
-
-// Enable HTTPS for slim builder (required when using CreateSlimBuilder with HTTPS endpoints)
-builder.WebHost.UseKestrelHttpsConfiguration();
+var builder = WebApplication.CreateBuilder(args);
 
 // Add Aspire service defaults (telemetry, service discovery, resilience)
 builder.AddServiceDefaults();
