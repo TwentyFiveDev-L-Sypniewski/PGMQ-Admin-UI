@@ -3,39 +3,41 @@
 
 <FluentLayout>
     <FluentHeader>
-        <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween">
-            <FluentStack Orientation="Orientation.Horizontal">
-                <h1>PGMQ Admin</h1>
-                <FluentNavMenu>
-                    <FluentNavLink Href="/" Match="NavLinkMatch.All">Queues</FluentNavLink>
-                    <FluentNavLink Href="/health">Health</FluentNavLink>
-                </FluentNavMenu>
-            </FluentStack>
-            <StatusIndicator />
-        </FluentStack>
+        PGMQ Admin
+        <FluentSpacer />
+        <StatusIndicator />
     </FluentHeader>
-
-    <FluentMain>
-        <article class="content">
+    <FluentStack Class="main" Orientation="Orientation.Horizontal" Width="100%">
+        <FluentNavMenu Width="200" Collapsible="true" Title="Navigation">
+            <FluentNavLink Href="/" Match="NavLinkMatch.All">Queues</FluentNavLink>
+            <FluentNavLink Href="/health">Health</FluentNavLink>
+        </FluentNavMenu>
+        <FluentBodyContent Class="body-content">
             <ErrorBoundary>
                 <ChildContent>
-                    @Body
+                    <div class="content">
+                        @Body
+                    </div>
                 </ChildContent>
                 <ErrorContent Context="error">
-                    <FluentMessageBar Intent="MessageIntent.Error">
-                        <strong>An error occurred:</strong> @error.Message
-                    </FluentMessageBar>
+                    <div class="blazor-error-boundary">@error.Message</div>
                 </ErrorContent>
             </ErrorBoundary>
-        </article>
-    </FluentMain>
-
+        </FluentBodyContent>
+    </FluentStack>
     <FluentFooter>
-        <p>PGMQ Admin UI - Built with Blazor Server & Fluent UI</p>
+        <a href="https://www.fluentui-blazor.net" target="_blank">Fluent UI Blazor</a>
+        <FluentSpacer />
+        <span>PGMQ Admin UI</span>
     </FluentFooter>
 </FluentLayout>
 
 <NotificationContainer />
+<FluentToastProvider />
+<FluentDialogProvider />
+<FluentTooltipProvider />
+<FluentMessageBarProvider />
+<FluentMenuProvider />
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
