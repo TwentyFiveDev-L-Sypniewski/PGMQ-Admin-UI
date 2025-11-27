@@ -312,11 +312,11 @@ postgres_data:
 
 ## Development Roadmap
 
-**Current Status:** Step 1 complete, Step 2 partially complete. Project is buildable and ready for UI development.
+**Current Status:** Steps 1 and 2 complete. Backend service layer fully implemented with comprehensive test coverage. Project is buildable and ready for UI development.
 
 **Progress Summary:**
 - ✅ **Step 1:** Project Setup - COMPLETE
-- 🟨 **Step 2:** Backend Service Layer - PARTIALLY COMPLETE (core services done, need metrics & tests)
+- ✅ **Step 2:** Backend Service Layer - COMPLETE (services, DTOs, metrics, unit tests, integration tests)
 - ⬜ **Step 3:** UI Components - NOT STARTED
 - 🟨 **Step 4:** Polish & Deployment - PARTIALLY COMPLETE (infrastructure done, need testing & polish)
 
@@ -346,7 +346,7 @@ postgres_data:
 - ✅ Build succeeds: 0 warnings, 0 errors
 - 🎯 **Architecture Decision:** No IPgmqService interface (follows AGENTS.md: "No interfaces for single implementations")
 
-### Step 2: Backend Service Layer (Day 2–3) - **PARTIALLY COMPLETE**
+### Step 2: Backend Service Layer (Day 2–3) - ✅ **COMPLETED**
 
 - [x] Create `QueueService` class wrapping NpgmqClient instance from Npgmq package
 - [x] Create `MessageService` class wrapping NpgmqClient instance from Npgmq package
@@ -354,11 +354,11 @@ postgres_data:
 - [x] Write DTOs: QueueDto, MessageDto, QueueDetailDto
 - [x] Add structured logging with ILogger for all operations (using LoggerMessage source generators)
 - [x] Implement error handling: try-catch with logging in all service methods
-- [ ] Implement GetQueueStatsAsync() for metrics (total/in-flight/archived counts, oldest unread age)
-- [ ] Write QueueStatsDto
-- [ ] Unit test QueueService with FakeItEasy mocks
-- [ ] Unit test MessageService with FakeItEasy mocks
-- [ ] Integration tests against test Postgres instance using Testcontainers
+- [x] Implement GetQueueStatsAsync() for metrics (total/in-flight/archived counts, oldest unread age)
+- [x] Write QueueStatsDto
+- [x] Unit test QueueService with FakeItEasy mocks
+- [x] Unit test MessageService with FakeItEasy mocks
+- [x] Integration tests against test Postgres instance using Testcontainers
 - **Docs:** [Npgmq GitHub](https://github.com/brianpursley/Npgmq), [Npgmq Usage Examples](https://github.com/brianpursley/Npgmq#usage)
 
 **Implementation Notes:**
@@ -366,7 +366,11 @@ postgres_data:
 - ✅ Concrete classes without interfaces (follows AGENTS.md guidance)
 - ✅ LoggerMessage source generators for high-performance logging
 - ✅ Virtual methods for test mocking without interfaces
-- ⏳ **Remaining:** Queue metrics/stats functionality, comprehensive test coverage
+- ✅ GetQueueStatsAsync() implemented using pgmq.metrics() SQL function
+- ✅ QueueStatsDto with all required fields (QueueName, QueueLength, NewestMsgAgeSec, OldestMsgAgeSec, TotalMessages, ScrapeTime)
+- ✅ Comprehensive unit test coverage: 15 tests for QueueService, 13 tests for MessageService (26 tests total, all passing)
+- ✅ Integration test coverage: 15 integration tests using Testcontainers with PostgreSQL + PGMQ extension
+- ✅ Tests follow TUnit conventions with Category attributes for filtering
 
 ### Step 3: UI Components (Day 4–5)
 

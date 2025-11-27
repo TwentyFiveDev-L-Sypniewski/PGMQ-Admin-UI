@@ -2,27 +2,41 @@
 
 ## Test Structure
 
-**3-Layer Testing Pyramid** organized by feature, not by test category.
+**Feature-First Organization** - organize by feature (vertical slices), not by test type.
 
+**Organization:** Tests in `Features/{FeatureName}/` folders (e.g., Features/Messages/, Features/Queues/). Shared component tests in `Components/` folder. Use `[Property("Category", "Unit|Integration|Component")]` at class level to distinguish test types.
+
+**Key Rules:**
+
+- Organize by **feature first**, not by test category
+- NO separate `/Unit/`, `/Integration/`, `/Component/` root folders
+- Filter via `dotnet test --filter "Category=Integration"`
 - **Categories**: `Unit`, `Integration`, `Component`
-- **Marking**: `[Property("Category", "Unit|Integration|Component")]` at class level
 
 ## Running Tests
 
 ```bash
 dotnet test                                      # All tests
-dotnet test --filter "Category=Unit"            # Unit tests only
-dotnet test --filter "Category=Integration"     # Integration tests only
-dotnet test --filter "Category=Component"       # Component tests only
+# Filtered (Unit, Integration, Component)
+dotnet test StockStorage/tests/StockStorageTests/ --filter "TestCategory=Unit"
 ```
 
 ## Testing Layers
 
-| Layer       | Stack                  | What                                  | Speed |
-| ----------- | ---------------------- | ------------------------------------- | ----- |
-| Unit        | TUnit + FakeItEasy     | Service methods, business logic, DTOs | ms    |
-| Integration | TUnit + Testcontainers | Real PostgreSQL + PGMQ operations     | s     |
-| Component   | bUnit + TUnit          | Blazor components, form submissions   | ms    |
+| Layer       | Stack                  | What                                | When to Use                          | Speed |
+| ----------- | ---------------------- | ----------------------------------- | ------------------------------------ | ----- |
+| Unit        | TUnit + FakeItEasy     | Business logic, parsing, validation | Service has logic beyond I/O calls   | ms    |
+| Integration | TUnit + Testcontainers | Real PostgreSQL + PGMQ operations   | Services wrap external dependencies  | s     |
+| Component   | bUnit + TUnit          | Blazor components, form submissions | UI components with user interactions | ms    |
+
+**Decision Tree:**
+
+- Does the service have business logic (validation, transformation, complex conditionals)?
+  - YES → Unit tests for that logic
+  - NO → Skip unit tests, use integration tests only
+- Does the service call external dependencies (DB, PGMQ, HTTP)?
+  - YES → Integration tests with real dependencies (Testcontainers)
+  - NO → Unit tests may suffice
 
 ## Configuration
 
@@ -37,22 +51,32 @@ dotnet test --filter "Category=Component"       # Component tests only
 - **Cleanup**: `DeleteQueueAsync()` after each test
 - **No Respawn needed**: PGMQ queues are isolated
 
-## Common Issues
+## Anti-Patterns to Avoid
 
-| Issue                  | Fix                                  |
-| ---------------------- | ------------------------------------ |
-| Docker Socket Error    | Configure `DOCKER_HOST`              |
-| PGMQ Extension Missing | Use `quay.io/tembo/pg18-pgmq:latest` |
-| Testcontainers Timeout | Ensure Docker running: `docker ps`   |
-| Orphaned Containers    | `docker container prune`             |
+**Mock-Only Tests:**
+
+- ❌ NEVER create tests that fake a service and verify the fake's behavior
+- ❌ NEVER test services by mocking the service itself
+- ✅ Test real logic with unit tests OR use integration tests with real dependencies
+
+**When to Use Mocks vs Integration:**
+
+- Unit tests with mocks: Only when service has significant business logic to isolate
+- Integration tests: For services wrapping external libraries/databases (QueueService, MessageService)
+- Rule: If service just calls external client methods, use integration tests only
 
 ## Best Practices
 
-1. **Feature-Based Organization**: Tests by feature, categories via attributes
-2. **Isolation**: Unique queue names per test
-3. **Parallelism**: `[NotInParallel("SharedDatabase")]` for shared containers
-4. **Sociable Tests**: Real operations over mocking
-5. **Observable Outcomes**: Verify state, not mock interactions
+1. **Feature-First Organization**: Tests in `Features/{FeatureName}/`, not `/Unit/` or `/Integration/`
+2. **No Mock-Only Tests**: If service is thin wrapper, use integration tests only
+3. **Test Real Behavior**: Verify observable outcomes (DB state, return values), not mock interactions
+4. **PostgreSQL Testcontainers**: Use for integration tests with real DB interactions
+5. **Isolation**: Unique queue names per test: `test-queue-{Guid.NewGuid()}`
+7. **Parallelism**: Use `[NotInParallel("SharedDatabase")]` for integration tests
+8. **Naming**: Descriptive via `[DisplayName]` or pattern: `MethodName_Scenario_ExpectedOutcome`
+9. **Assertions**: Use AwesomeAssertions with `AssertionScope`
+10. **Sociable Tests**: Exercise real collaborators; avoid over-mocking
+11. **No Redundancy**: Don't duplicate integration coverage with unit tests
 
 ## Reference
 

@@ -1,4 +1,5 @@
 using Npgmq;
+using Npgsql;
 using PgmqAdminUI.Features.Messages;
 
 namespace PgmqAdminUI.Features.Queues;
@@ -6,11 +7,13 @@ namespace PgmqAdminUI.Features.Queues;
 public partial class QueueService
 {
     private readonly NpgmqClient _pgmq;
+    private readonly string _connectionString;
     private readonly ILogger<QueueService> _logger;
 
     public QueueService(string connectionString, ILogger<QueueService> logger)
     {
         _pgmq = new NpgmqClient(connectionString);
+        _connectionString = connectionString;
         _logger = logger;
     }
 
@@ -92,6 +95,40 @@ public partial class QueueService
         }
     }
 
+    public virtual async Task<QueueStatsDto?> GetQueueStatsAsync(string queueName, CancellationToken ct = default)
+    {
+        try
+        {
+            await using var connection = new NpgsqlConnection(_connectionString);
+            await connection.OpenAsync(ct).ConfigureAwait(false);
+
+            await using var command = new NpgsqlCommand("SELECT * FROM pgmq.metrics($1)", connection);
+            command.Parameters.AddWithValue(queueName);
+
+            await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
+
+            if (await reader.ReadAsync(ct).ConfigureAwait(false))
+            {
+                return new QueueStatsDto
+                {
+                    QueueName = reader.GetString(0),
+                    QueueLength = reader.GetInt64(1),
+                    NewestMsgAgeSec = reader.IsDBNull(2) ? null : reader.GetInt32(2),
+                    OldestMsgAgeSec = reader.IsDBNull(3) ? null : reader.GetInt32(3),
+                    TotalMessages = reader.GetInt64(4),
+                    ScrapeTime = reader.GetFieldValue<DateTimeOffset>(5)
+                };
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            LogGetQueueStatsFailed(ex, queueName);
+            throw;
+        }
+    }
+
     [LoggerMessage(Level = LogLevel.Error, Message = "Failed to list queues")]
     partial void LogListQueuesFailed(Exception ex);
 
@@ -109,4 +146,7 @@ public partial class QueueService
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Failed to delete queue {QueueName}")]
     partial void LogDeleteQueueFailed(Exception ex, string queueName);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to get queue stats for {QueueName}")]
+    partial void LogGetQueueStatsFailed(Exception ex, string queueName);
 }
