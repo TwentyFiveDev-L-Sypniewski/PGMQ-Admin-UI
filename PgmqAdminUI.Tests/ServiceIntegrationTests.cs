@@ -1,3 +1,4 @@
+using Npgsql;
 using PgmqAdminUI.Features.Messages;
 using PgmqAdminUI.Features.Queues;
 using Testcontainers.PostgreSql;
@@ -27,6 +28,12 @@ public class ServiceIntegrationTests : IAsyncDisposable
         await _container.StartAsync().ConfigureAwait(false);
 
         _connectionString = _container.GetConnectionString();
+
+        // Enable PGMQ extension
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync().ConfigureAwait(false);
+        await using var command = new NpgsqlCommand("CREATE EXTENSION IF NOT EXISTS pgmq CASCADE;", connection);
+        await command.ExecuteNonQueryAsync().ConfigureAwait(false);
 
         var queueLogger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<QueueService>();
         var messageLogger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<MessageService>();
