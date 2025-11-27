@@ -1,5 +1,6 @@
 @rendermode InteractiveServer
-@inject HttpClient Http
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager NavigationManager
 @inject ILogger<StatusIndicator> Logger
 @implements IDisposable
 
@@ -11,20 +12,29 @@
     private bool _isOnline = false;
     private DateTime? _lastCheckTime;
     private PeriodicTimer? _timer;
+    private CancellationTokenSource? _cts;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            _cts = new CancellationTokenSource();
             _timer = new PeriodicTimer(TimeSpan.FromSeconds(30));
 
             // Initial check
             await CheckHealthAsync();
 
             // Periodic checks
-            while (await _timer.WaitForNextTickAsync())
+            try
             {
-                await CheckHealthAsync();
+                while (await _timer.WaitForNextTickAsync(_cts.Token))
+                {
+                    await CheckHealthAsync();
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected when component is disposed
             }
         }
     }
@@ -33,7 +43,10 @@
     {
         try
         {
-            var response = await Http.GetAsync("/health");
+            var client = HttpClientFactory.CreateClient();
+            client.BaseAddress = new Uri(NavigationManager.BaseUri);
+            
+            var response = await client.GetAsync("/health");
             _isOnline = response.IsSuccessStatusCode;
             _lastCheckTime = DateTime.UtcNow;
         }
@@ -64,6 +77,8 @@
 
     public void Dispose()
     {
+        _cts?.Cancel();
+        _cts?.Dispose();
         _timer?.Dispose();
     }
 }
