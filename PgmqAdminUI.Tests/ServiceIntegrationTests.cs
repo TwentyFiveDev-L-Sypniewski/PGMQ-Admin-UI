@@ -129,11 +129,11 @@ public class ServiceIntegrationTests : IAsyncDisposable
     public async Task MessageService_SendMessage_SendsMessageSuccessfully()
     {
         var queueName = $"test-queue-{Guid.NewGuid()}";
-        var jsonMessage = "{\"data\":\"test\"}";
+        const string JsonMessage = "{\"data\":\"test\"}";
 
         await _queueService!.CreateQueueAsync(queueName).ConfigureAwait(false);
 
-        var msgId = await _messageService!.SendMessageAsync(queueName, jsonMessage).ConfigureAwait(false);
+        var msgId = await _messageService!.SendMessageAsync(queueName, JsonMessage).ConfigureAwait(false);
 
         msgId.Should().BeGreaterThan(0);
 
@@ -144,12 +144,12 @@ public class ServiceIntegrationTests : IAsyncDisposable
     public async Task MessageService_SendMessage_IncrementsQueueStats()
     {
         var queueName = $"test-queue-{Guid.NewGuid()}";
-        var jsonMessage = "{\"data\":\"test\"}";
+        const string JsonMessage = "{\"data\":\"test\"}";
 
         await _queueService!.CreateQueueAsync(queueName).ConfigureAwait(false);
 
         var statsBefore = await _queueService.GetQueueStatsAsync(queueName).ConfigureAwait(false);
-        await _messageService!.SendMessageAsync(queueName, jsonMessage).ConfigureAwait(false);
+        await _messageService!.SendMessageAsync(queueName, JsonMessage).ConfigureAwait(false);
         var statsAfter = await _queueService.GetQueueStatsAsync(queueName).ConfigureAwait(false);
 
         statsAfter!.TotalMessages.Should().BeGreaterThan(statsBefore!.TotalMessages);
@@ -161,12 +161,12 @@ public class ServiceIntegrationTests : IAsyncDisposable
     public async Task MessageService_SendMessageWithDelay_SendsMessageSuccessfully()
     {
         var queueName = $"test-queue-{Guid.NewGuid()}";
-        var jsonMessage = "{\"data\":\"test\"}";
-        var delaySeconds = 5;
+        const string JsonMessage = "{\"data\":\"test\"}";
+        const int DelaySeconds = 5;
 
         await _queueService!.CreateQueueAsync(queueName).ConfigureAwait(false);
 
-        var msgId = await _messageService!.SendMessageAsync(queueName, jsonMessage, delaySeconds).ConfigureAwait(false);
+        var msgId = await _messageService!.SendMessageAsync(queueName, JsonMessage, DelaySeconds).ConfigureAwait(false);
 
         msgId.Should().BeGreaterThan(0);
 
@@ -177,11 +177,11 @@ public class ServiceIntegrationTests : IAsyncDisposable
     public async Task MessageService_DeleteMessage_DeletesMessageSuccessfully()
     {
         var queueName = $"test-queue-{Guid.NewGuid()}";
-        var jsonMessage = "{\"data\":\"test\"}";
+        const string JsonMessage = "{\"data\":\"test\"}";
 
         await _queueService!.CreateQueueAsync(queueName).ConfigureAwait(false);
 
-        var msgId = await _messageService!.SendMessageAsync(queueName, jsonMessage).ConfigureAwait(false);
+        var msgId = await _messageService!.SendMessageAsync(queueName, JsonMessage).ConfigureAwait(false);
         var deleteResult = await _messageService.DeleteMessageAsync(queueName, msgId).ConfigureAwait(false);
 
         await Assert.That(deleteResult).IsTrue();
@@ -193,11 +193,11 @@ public class ServiceIntegrationTests : IAsyncDisposable
     public async Task MessageService_ArchiveMessage_ArchivesMessageSuccessfully()
     {
         var queueName = $"test-queue-{Guid.NewGuid()}";
-        var jsonMessage = "{\"data\":\"test\"}";
+        const string JsonMessage = "{\"data\":\"test\"}";
 
         await _queueService!.CreateQueueAsync(queueName).ConfigureAwait(false);
 
-        var msgId = await _messageService!.SendMessageAsync(queueName, jsonMessage).ConfigureAwait(false);
+        var msgId = await _messageService!.SendMessageAsync(queueName, JsonMessage).ConfigureAwait(false);
         var archiveResult = await _messageService.ArchiveMessageAsync(queueName, msgId).ConfigureAwait(false);
 
         await Assert.That(archiveResult).IsTrue();
@@ -209,13 +209,13 @@ public class ServiceIntegrationTests : IAsyncDisposable
     public async Task Integration_CompleteWorkflow_CreateSendDeleteQueue()
     {
         var queueName = $"test-queue-{Guid.NewGuid()}";
-        var jsonMessage1 = "{\"order_id\":1001}";
-        var jsonMessage2 = "{\"order_id\":1002}";
+        const string JsonMessage1 = "{\"order_id\":1001}";
+        const string JsonMessage2 = "{\"order_id\":1002}";
 
         await _queueService!.CreateQueueAsync(queueName).ConfigureAwait(false);
 
-        var msgId1 = await _messageService!.SendMessageAsync(queueName, jsonMessage1).ConfigureAwait(false);
-        var msgId2 = await _messageService.SendMessageAsync(queueName, jsonMessage2).ConfigureAwait(false);
+        var msgId1 = await _messageService!.SendMessageAsync(queueName, JsonMessage1).ConfigureAwait(false);
+        var msgId2 = await _messageService.SendMessageAsync(queueName, JsonMessage2).ConfigureAwait(false);
 
         var stats = await _queueService.GetQueueStatsAsync(queueName).ConfigureAwait(false);
         await Assert.That(stats!.TotalMessages).IsGreaterThanOrEqualTo(2);
