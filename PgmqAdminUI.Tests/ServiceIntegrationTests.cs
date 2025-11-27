@@ -17,7 +17,8 @@ public class ServiceIntegrationTests : IAsyncDisposable
     public async Task SetupAsync()
     {
         _container = new PostgreSqlBuilder()
-            .WithImage("quay.io/tembo/pg18-pgmq:latest")
+            .WithImage("ghcr.io/pgmq/pg18-pgmq:v1.7.0")
+            .WithName("pgmq-postgres-pgmq-admin-ui-integration-tests")
             .WithDatabase("test_db")
             .WithUsername("test_user")
             .WithPassword("test_password")
