@@ -1,5 +1,6 @@
 using Microsoft.FluentUI.AspNetCore.Components;
 using PgmqAdminUI.Components;
+using PgmqAdminUI.Components.UI;
 using PgmqAdminUI.Features.Queues;
 using MessageService = PgmqAdminUI.Features.Messages.MessageService;
 
@@ -16,6 +17,9 @@ builder.Services.AddHttpClient();
 
 // Add Fluent UI Blazor components
 builder.Services.AddFluentUIComponents();
+
+// Add notification service
+builder.Services.AddSingleton<NotificationService>();
 
 // Add feature services with connection string from configuration
 var connectionString = builder.Configuration.GetConnectionString("pgmq")

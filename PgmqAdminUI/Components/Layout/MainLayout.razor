@@ -1,3 +1,42 @@
 ﻿@inherits LayoutComponentBase
+@inject ILogger<MainLayout> Logger
 
-@Body
+<FluentLayout>
+    <FluentHeader>
+        <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween">
+            <FluentStack Orientation="Orientation.Horizontal">
+                <h1>PGMQ Admin</h1>
+                <FluentNavMenu>
+                    <FluentNavLink Href="/" Match="NavLinkMatch.All">Queues</FluentNavLink>
+                    <FluentNavLink Href="/health">Health</FluentNavLink>
+                </FluentNavMenu>
+            </FluentStack>
+            <StatusIndicator />
+        </FluentStack>
+    </FluentHeader>
+
+    <FluentMain>
+        <article class="content">
+            <ErrorBoundary>
+                <ChildContent>
+                    @Body
+                </ChildContent>
+                <ErrorContent Context="error">
+                    <FluentMessageBar Intent="MessageIntent.Error">
+                        <strong>An error occurred:</strong> @error.Message
+                    </FluentMessageBar>
+                </ErrorContent>
+            </ErrorBoundary>
+        </article>
+    </FluentMain>
+
+    <FluentFooter>
+        <p>PGMQ Admin UI - Built with Blazor Server & Fluent UI</p>
+    </FluentFooter>
+</FluentLayout>
+
+<NotificationContainer />
+
+@code {
+    // Layout logic here
+}
