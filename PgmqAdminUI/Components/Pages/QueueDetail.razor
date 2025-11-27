@@ -1,0 +1,49 @@
+@page "/queues/{queueName}"
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+
+<PageTitle>Queue: @QueueName - PGMQ Admin</PageTitle>
+
+<FluentStack Orientation="Orientation.Vertical">
+    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween">
+        <h2>Queue: @QueueName</h2>
+        <FluentStack Orientation="Orientation.Horizontal">
+            <FluentButton Appearance="Appearance.Accent" OnClick="() => _showSendDialog = true">
+                Send Message
+            </FluentButton>
+            <FluentButton Appearance="Appearance.Lightweight" OnClick="GoBack">
+                Back to Queues
+            </FluentButton>
+        </FluentStack>
+    </FluentStack>
+
+    <FluentTabs>
+        <FluentTab Label="Messages">
+            <MessagesTab QueueName="@QueueName" />
+        </FluentTab>
+        <FluentTab Label="Archived">
+            <ArchivedTab QueueName="@QueueName" />
+        </FluentTab>
+        <FluentTab Label="Metrics">
+            <MetricsTab QueueName="@QueueName" />
+        </FluentTab>
+    </FluentTabs>
+</FluentStack>
+
+<SendMessageDialog @bind-IsOpen="_showSendDialog" QueueName="@QueueName" OnMessageSent="HandleMessageSent" />
+
+@code {
+    [Parameter] public string QueueName { get; set; } = "";
+
+    private bool _showSendDialog = false;
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/queues");
+    }
+
+    private void HandleMessageSent()
+    {
+        _showSendDialog = false;
+    }
+}

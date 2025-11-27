@@ -1,0 +1,117 @@
+@using PgmqAdminUI.Features.Messages
+@rendermode InteractiveServer
+@inject QueueService QueueService
+@inject Features.Messages.MessageService MessageService
+@inject NotificationService Notifications
+@inject ILogger<MessagesTab> Logger
+
+<FluentStack Orientation="Orientation.Vertical">
+    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween">
+        <h3>Messages</h3>
+        <FluentButton Appearance="Appearance.Lightweight" OnClick="LoadMessagesAsync">
+            Refresh
+        </FluentButton>
+    </FluentStack>
+
+    @if (_loading)
+    {
+        <FluentProgressRing />
+    }
+    else if (_messages == null || !_messages.Any())
+    {
+        <FluentMessageBar Intent="MessageIntent.Info">
+            No messages in this queue.
+        </FluentMessageBar>
+    }
+    else
+    {
+        <FluentDataGrid Items="@_messages" Pagination="@_pagination" TGridItem="MessageDto">
+            <PropertyColumn Property="@(m => m.MsgId)" Title="Message ID" Sortable="true" />
+            <TemplateColumn Title="Message">
+                <JsonViewer Content="@context.Message" MaxLength="100" />
+            </TemplateColumn>
+            <PropertyColumn Property="@(m => m.Vt)" Title="Visibility Timeout" Sortable="true" />
+            <PropertyColumn Property="@(m => m.EnqueuedAt)" Title="Created" Format="yyyy-MM-dd HH:mm:ss" Sortable="true" />
+            <PropertyColumn Property="@(m => m.ReadCount)" Title="Read Count" Sortable="true" Align="Align.End" />
+            <TemplateColumn Title="Actions">
+                <FluentButton Appearance="Appearance.Lightweight" OnClick="() => DeleteMessage(context.MsgId)">
+                    Delete
+                </FluentButton>
+                <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ArchiveMessage(context.MsgId)">
+                    Archive
+                </FluentButton>
+            </TemplateColumn>
+        </FluentDataGrid>
+
+        <FluentPaginator State="@_pagination" />
+    }
+</FluentStack>
+
+@code {
+    [Parameter] public required string QueueName { get; set; }
+
+    private IQueryable<MessageDto>? _messages;
+    private bool _loading = true;
+    private readonly PaginationState _pagination = new() { ItemsPerPage = 20 };
+    private int _currentPage = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMessagesAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_messages == null)
+            await LoadMessagesAsync();
+    }
+
+    private async Task LoadMessagesAsync()
+    {
+        try
+        {
+            _loading = true;
+            var detail = await QueueService.GetQueueDetailAsync(QueueName, _currentPage, _pagination.ItemsPerPage);
+            _messages = detail.Messages.AsQueryable();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load messages for queue {QueueName}", QueueName);
+            Notifications.ShowError($"Failed to load messages: {ex.Message}");
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task DeleteMessage(long msgId)
+    {
+        try
+        {
+            await MessageService.DeleteMessageAsync(QueueName, msgId);
+            Notifications.ShowSuccess($"Message {msgId} deleted successfully");
+            await LoadMessagesAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to delete message {MsgId}", msgId);
+            Notifications.ShowError($"Failed to delete message: {ex.Message}");
+        }
+    }
+
+    private async Task ArchiveMessage(long msgId)
+    {
+        try
+        {
+            await MessageService.ArchiveMessageAsync(QueueName, msgId);
+            Notifications.ShowSuccess($"Message {msgId} archived successfully");
+            await LoadMessagesAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to archive message {MsgId}", msgId);
+            Notifications.ShowError($"Failed to archive message: {ex.Message}");
+        }
+    }
+}

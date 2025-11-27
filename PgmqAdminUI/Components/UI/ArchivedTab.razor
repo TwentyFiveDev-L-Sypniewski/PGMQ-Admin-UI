@@ -1,0 +1,71 @@
+@using PgmqAdminUI.Features.Messages
+@rendermode InteractiveServer
+@inject Features.Messages.MessageService MessageService
+@inject NotificationService Notifications
+@inject ILogger<ArchivedTab> Logger
+
+<FluentStack Orientation="Orientation.Vertical">
+    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween">
+        <h3>Archived Messages</h3>
+        <FluentButton Appearance="Appearance.Lightweight" OnClick="LoadArchivedMessagesAsync">
+            Refresh
+        </FluentButton>
+    </FluentStack>
+
+    @if (_loading)
+    {
+        <FluentProgressRing />
+    }
+    else if (_messages == null || !_messages.Any())
+    {
+        <FluentMessageBar Intent="MessageIntent.Info">
+            No archived messages.
+        </FluentMessageBar>
+    }
+    else
+    {
+        <FluentDataGrid Items="@_messages" Pagination="@_pagination" TGridItem="MessageDto">
+            <PropertyColumn Property="@(m => m.MsgId)" Title="Message ID" Sortable="true" />
+            <TemplateColumn Title="Message">
+                <JsonViewer Content="@context.Message" MaxLength="100" />
+            </TemplateColumn>
+            <PropertyColumn Property="@(m => m.EnqueuedAt)" Title="Created" Format="yyyy-MM-dd HH:mm:ss" Sortable="true" />
+            <PropertyColumn Property="@(m => m.ReadCount)" Title="Read Count" Sortable="true" Align="Align.End" />
+        </FluentDataGrid>
+
+        <FluentPaginator State="@_pagination" />
+    }
+</FluentStack>
+
+@code {
+    [Parameter] public required string QueueName { get; set; }
+
+    private IQueryable<MessageDto>? _messages;
+    private bool _loading = true;
+    private readonly PaginationState _pagination = new() { ItemsPerPage = 20 };
+    private int _currentPage = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadArchivedMessagesAsync();
+    }
+
+    private async Task LoadArchivedMessagesAsync()
+    {
+        try
+        {
+            _loading = true;
+            var detail = await MessageService.GetArchivedMessagesAsync(QueueName, _currentPage, _pagination.ItemsPerPage);
+            _messages = detail.Messages.AsQueryable();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load archived messages for queue {QueueName}", QueueName);
+            Notifications.ShowError($"Failed to load archived messages: {ex.Message}");
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

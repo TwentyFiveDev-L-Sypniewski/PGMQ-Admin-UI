@@ -1,0 +1,136 @@
+@using System.ComponentModel.DataAnnotations
+@using System.Text.Json
+@using PgmqAdminUI.Features.Messages
+@rendermode InteractiveServer
+@inject Features.Messages.MessageService MessageService
+@inject NotificationService Notifications
+@inject ILogger<SendMessageDialog> Logger
+
+<FluentDialog @bind-Open="IsOpen" Modal="true">
+    <h3>Send Message</h3>
+    <EditForm Model="@_model" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+        <FluentValidationSummary />
+
+        <FluentStack Orientation="Orientation.Vertical">
+            <FluentTextField @bind-Value="_model.QueueName" Label="Queue Name" Required Readonly />
+
+            <FluentTextArea @bind-Value="_model.Message" Label="Message (JSON)" Required Rows="10" />
+            <ValidationMessage For="() => _model.Message" />
+            @if (!string.IsNullOrEmpty(_jsonValidationError))
+            {
+                <FluentMessageBar Intent="MessageIntent.Error">
+                    @_jsonValidationError
+                </FluentMessageBar>
+            }
+
+            <FluentNumberField @bind-Value="_model.DelaySeconds" Label="Delay (seconds)" Min="0" Max="86400" />
+            <ValidationMessage For="() => _model.DelaySeconds" />
+
+            <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.End">
+                <FluentButton Appearance="Appearance.Neutral" OnClick="Cancel">Cancel</FluentButton>
+                <FluentButton Appearance="Appearance.Accent" Type="ButtonType.Submit" Loading="@_submitting">
+                    Send
+                </FluentButton>
+            </FluentStack>
+        </FluentStack>
+    </EditForm>
+</FluentDialog>
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+    [Parameter] public string? QueueName { get; set; }
+    [Parameter] public EventCallback OnMessageSent { get; set; }
+
+    private SendMessageModel _model = new();
+    private bool _submitting = false;
+    private string? _jsonValidationError;
+
+    protected override void OnParametersSet()
+    {
+        if (!string.IsNullOrEmpty(QueueName))
+        {
+            _model.QueueName = QueueName;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (!IsValidJson(_model.Message))
+        {
+            _jsonValidationError = "Message must be valid JSON";
+            return;
+        }
+
+        _jsonValidationError = null;
+
+        try
+        {
+            _submitting = true;
+            var msgId = await MessageService.SendMessageAsync(
+                _model.QueueName,
+                _model.Message,
+                _model.DelaySeconds
+            );
+
+            Notifications.ShowSuccess($"Message sent successfully (ID: {msgId})");
+
+            await OnMessageSent.InvokeAsync();
+            await CloseDialog();
+            ResetForm();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to send message to queue {QueueName}", _model.QueueName);
+            Notifications.ShowError($"Failed to send message: {ex.Message}");
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+
+    private bool IsValidJson(string json)
+    {
+        try
+        {
+            JsonDocument.Parse(json);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private async Task Cancel()
+    {
+        await CloseDialog();
+        ResetForm();
+    }
+
+    private async Task CloseDialog()
+    {
+        IsOpen = false;
+        await IsOpenChanged.InvokeAsync(IsOpen);
+    }
+
+    private void ResetForm()
+    {
+        _model = new SendMessageModel { QueueName = QueueName ?? "" };
+        _jsonValidationError = null;
+    }
+
+    public class SendMessageModel
+    {
+        [Required(ErrorMessage = "Queue name is required")]
+        public string QueueName { get; set; } = "";
+
+        [Required(ErrorMessage = "Message is required")]
+        public string Message { get; set; } = "{}";
+
+        [Range(0, 86400, ErrorMessage = "Delay must be between 0 and 86400 seconds")]
+        public int? DelaySeconds { get; set; }
+    }
+}

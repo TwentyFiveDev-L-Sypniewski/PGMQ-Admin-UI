@@ -1,0 +1,105 @@
+@page "/"
+@page "/queues"
+@rendermode InteractiveServer
+@inject QueueService QueueService
+@inject NotificationService Notifications
+@inject NavigationManager Navigation
+@inject ILogger<Queues> Logger
+
+<PageTitle>Queues - PGMQ Admin</PageTitle>
+
+<FluentStack Orientation="Orientation.Vertical">
+    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween">
+        <h2>Queues</h2>
+        <FluentButton Appearance="Appearance.Accent" OnClick="() => _showCreateDialog = true">
+            Create Queue
+        </FluentButton>
+    </FluentStack>
+
+    @if (_loading)
+    {
+        <FluentProgressRing />
+    }
+    else if (_queues == null || !_queues.Any())
+    {
+        <FluentMessageBar Intent="MessageIntent.Info">
+            No queues found. Create your first queue to get started.
+        </FluentMessageBar>
+    }
+    else
+    {
+        <FluentDataGrid Items="@_queues" TGridItem="QueueDto" GridTemplateColumns="2fr 1fr 1fr 1fr 2fr">
+            <PropertyColumn Property="@(q => q.Name)" Sortable="true" Title="Queue Name" />
+            <PropertyColumn Property="@(q => q.TotalMessages)" Sortable="true" Title="Total" Align="Align.End" />
+            <PropertyColumn Property="@(q => q.InFlightMessages)" Sortable="true" Title="In-Flight" Align="Align.End" />
+            <PropertyColumn Property="@(q => q.ArchivedMessages)" Sortable="true" Title="Archived" Align="Align.End" />
+            <TemplateColumn Title="Actions">
+                <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ViewDetails(context.Name)">
+                    View Details
+                </FluentButton>
+                <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ShowDeleteDialog(context.Name)">
+                    Delete
+                </FluentButton>
+            </TemplateColumn>
+        </FluentDataGrid>
+    }
+</FluentStack>
+
+<CreateQueueDialog @bind-IsOpen="_showCreateDialog" OnQueueCreated="HandleQueueCreated" />
+<DeleteQueueDialog @bind-IsOpen="_showDeleteDialog" QueueName="@_queueToDelete" OnQueueDeleted="HandleQueueDeleted" />
+
+@code {
+    private IQueryable<QueueDto>? _queues;
+    private bool _loading = true;
+    private bool _showCreateDialog = false;
+    private bool _showDeleteDialog = false;
+    private string? _queueToDelete;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadQueuesAsync();
+    }
+
+    private async Task LoadQueuesAsync()
+    {
+        try
+        {
+            _loading = true;
+            var queues = await QueueService.ListQueuesAsync();
+            _queues = queues.AsQueryable();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load queues");
+            Notifications.ShowError($"Failed to load queues: {ex.Message}");
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void ViewDetails(string queueName)
+    {
+        Navigation.NavigateTo($"/queues/{queueName}");
+    }
+
+    private void ShowDeleteDialog(string queueName)
+    {
+        _queueToDelete = queueName;
+        _showDeleteDialog = true;
+    }
+
+    private async Task HandleQueueCreated()
+    {
+        _showCreateDialog = false;
+        await LoadQueuesAsync();
+    }
+
+    private async Task HandleQueueDeleted()
+    {
+        _showDeleteDialog = false;
+        _queueToDelete = null;
+        await LoadQueuesAsync();
+    }
+}

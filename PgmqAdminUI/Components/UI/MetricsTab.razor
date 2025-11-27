@@ -1,0 +1,121 @@
+@rendermode InteractiveServer
+@inject QueueService QueueService
+@inject NotificationService Notifications
+@inject ILogger<MetricsTab> Logger
+@implements IDisposable
+
+<FluentStack Orientation="Orientation.Vertical">
+    <h3>Queue Metrics</h3>
+
+    @if (_loading)
+    {
+        <FluentProgressRing />
+    }
+    else if (_stats == null)
+    {
+        <FluentMessageBar Intent="MessageIntent.Error">
+            Failed to load metrics.
+        </FluentMessageBar>
+    }
+    else
+    {
+        <FluentGrid Spacing="3">
+            <FluentGridItem xs="12" sm="6" md="4">
+                <FluentCard>
+                    <h4>Queue Length</h4>
+                    <p style="font-size: 2rem; font-weight: bold;">@_stats.QueueLength</p>
+                    <p style="font-size: 0.875rem; color: var(--neutral-foreground-hint);">Current messages</p>
+                </FluentCard>
+            </FluentGridItem>
+
+            <FluentGridItem xs="12" sm="6" md="4">
+                <FluentCard>
+                    <h4>Total Messages</h4>
+                    <p style="font-size: 2rem; font-weight: bold;">@_stats.TotalMessages</p>
+                    <p style="font-size: 0.875rem; color: var(--neutral-foreground-hint);">All-time</p>
+                </FluentCard>
+            </FluentGridItem>
+
+            <FluentGridItem xs="12" sm="6" md="4">
+                <FluentCard>
+                    <h4>Oldest Message Age</h4>
+                    <p style="font-size: 2rem; font-weight: bold;">@FormatAge(_stats.OldestMsgAgeSec)</p>
+                    <p style="font-size: 0.875rem; color: var(--neutral-foreground-hint);">Seconds</p>
+                </FluentCard>
+            </FluentGridItem>
+
+            <FluentGridItem xs="12" sm="6" md="4">
+                <FluentCard>
+                    <h4>Newest Message Age</h4>
+                    <p style="font-size: 2rem; font-weight: bold;">@FormatAge(_stats.NewestMsgAgeSec)</p>
+                    <p style="font-size: 0.875rem; color: var(--neutral-foreground-hint);">Seconds</p>
+                </FluentCard>
+            </FluentGridItem>
+
+            <FluentGridItem xs="12" sm="6" md="4">
+                <FluentCard>
+                    <h4>Last Scrape</h4>
+                    <p style="font-size: 1.5rem; font-weight: bold;">@_stats.ScrapeTime.ToString("HH:mm:ss")</p>
+                    <p style="font-size: 0.875rem; color: var(--neutral-foreground-hint);">UTC</p>
+                </FluentCard>
+            </FluentGridItem>
+        </FluentGrid>
+
+        <p style="margin-top: 1rem; color: var(--neutral-foreground-hint);">
+            Auto-refreshing every 30 seconds
+        </p>
+    }
+</FluentStack>
+
+@code {
+    [Parameter] public required string QueueName { get; set; }
+
+    private QueueStatsDto? _stats;
+    private bool _loading = true;
+    private PeriodicTimer? _timer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMetricsAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _timer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+
+            while (await _timer.WaitForNextTickAsync())
+            {
+                await LoadMetricsAsync();
+            }
+        }
+    }
+
+    private async Task LoadMetricsAsync()
+    {
+        try
+        {
+            _loading = true;
+            _stats = await QueueService.GetQueueStatsAsync(QueueName);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load metrics for queue {QueueName}", QueueName);
+            Notifications.ShowError($"Failed to load metrics: {ex.Message}");
+        }
+        finally
+        {
+            _loading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private string FormatAge(int? seconds) =>
+        seconds.HasValue ? $"{seconds.Value:N0}" : "N/A";
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+}
