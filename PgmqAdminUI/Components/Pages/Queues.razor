@@ -1,8 +1,9 @@
 @page "/"
 @page "/queues"
+@using Microsoft.FluentUI.AspNetCore.Components
 @rendermode InteractiveServer
 @inject QueueService QueueService
-@inject NotificationService Notifications
+@inject IMessageService MessageService
 @inject NavigationManager Navigation
 @inject ILogger<Queues> Logger
 
@@ -71,7 +72,10 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to load queues");
-            Notifications.ShowError($"Failed to load queues: {ex.Message}");
+            MessageService.ShowMessageBar(options => {
+                options.Intent = MessageIntent.Error;
+                options.Body = $"Failed to load queues: {ex.Message}";
+            });
         }
         finally
         {

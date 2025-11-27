@@ -1,6 +1,7 @@
+@using Microsoft.FluentUI.AspNetCore.Components
 @rendermode InteractiveServer
 @inject QueueService QueueService
-@inject NotificationService Notifications
+@inject IMessageService MessageService
 @inject ILogger<MetricsTab> Logger
 @implements IDisposable
 
@@ -102,7 +103,10 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to load metrics for queue {QueueName}", QueueName);
-            Notifications.ShowError($"Failed to load metrics: {ex.Message}");
+            MessageService.ShowMessageBar(options => {
+                options.Intent = MessageIntent.Error;
+                options.Body = $"Failed to load metrics: {ex.Message}";
+            });
         }
         finally
         {

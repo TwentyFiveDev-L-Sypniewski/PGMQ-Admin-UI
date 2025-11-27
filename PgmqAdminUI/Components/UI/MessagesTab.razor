@@ -1,8 +1,9 @@
 @using PgmqAdminUI.Features.Messages
+@using Microsoft.FluentUI.AspNetCore.Components
 @rendermode InteractiveServer
 @inject QueueService QueueService
 @inject Features.Messages.MessageService MessageService
-@inject NotificationService Notifications
+@inject IMessageService NotificationService
 @inject ILogger<MessagesTab> Logger
 
 <FluentStack Orientation="Orientation.Vertical">
@@ -77,7 +78,10 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to load messages for queue {QueueName}", QueueName);
-            Notifications.ShowError($"Failed to load messages: {ex.Message}");
+            NotificationService.ShowMessageBar(options => {
+                options.Intent = MessageIntent.Error;
+                options.Body = $"Failed to load messages: {ex.Message}";
+            });
         }
         finally
         {
@@ -90,13 +94,19 @@
         try
         {
             await MessageService.DeleteMessageAsync(QueueName, msgId);
-            Notifications.ShowSuccess($"Message {msgId} deleted successfully");
+            NotificationService.ShowMessageBar(options => {
+                options.Intent = MessageIntent.Success;
+                options.Body = $"Message {msgId} deleted successfully";
+            });
             await LoadMessagesAsync();
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to delete message {MsgId}", msgId);
-            Notifications.ShowError($"Failed to delete message: {ex.Message}");
+            NotificationService.ShowMessageBar(options => {
+                options.Intent = MessageIntent.Error;
+                options.Body = $"Failed to delete message: {ex.Message}";
+            });
         }
     }
 
@@ -105,13 +115,19 @@
         try
         {
             await MessageService.ArchiveMessageAsync(QueueName, msgId);
-            Notifications.ShowSuccess($"Message {msgId} archived successfully");
+            NotificationService.ShowMessageBar(options => {
+                options.Intent = MessageIntent.Success;
+                options.Body = $"Message {msgId} archived successfully";
+            });
             await LoadMessagesAsync();
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to archive message {MsgId}", msgId);
-            Notifications.ShowError($"Failed to archive message: {ex.Message}");
+            NotificationService.ShowMessageBar(options => {
+                options.Intent = MessageIntent.Error;
+                options.Body = $"Failed to archive message: {ex.Message}";
+            });
         }
     }
 }

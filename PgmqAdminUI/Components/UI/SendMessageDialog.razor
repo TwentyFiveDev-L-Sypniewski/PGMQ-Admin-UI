@@ -1,9 +1,10 @@
 @using System.ComponentModel.DataAnnotations
 @using System.Text.Json
 @using PgmqAdminUI.Features.Messages
+@using Microsoft.FluentUI.AspNetCore.Components
 @rendermode InteractiveServer
 @inject Features.Messages.MessageService MessageService
-@inject NotificationService Notifications
+@inject IMessageService NotificationService
 @inject ILogger<SendMessageDialog> Logger
 
 <FluentDialog @bind-Open="IsOpen" Modal="true">
@@ -74,7 +75,10 @@
                 _model.DelaySeconds
             );
 
-            Notifications.ShowSuccess($"Message sent successfully (ID: {msgId})");
+            NotificationService.ShowMessageBar(options => {
+                options.Intent = MessageIntent.Success;
+                options.Body = $"Message sent successfully (ID: {msgId})";
+            });
 
             await OnMessageSent.InvokeAsync();
             await CloseDialog();
@@ -83,7 +87,10 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to send message to queue {QueueName}", _model.QueueName);
-            Notifications.ShowError($"Failed to send message: {ex.Message}");
+            NotificationService.ShowMessageBar(options => {
+                options.Intent = MessageIntent.Error;
+                options.Body = $"Failed to send message: {ex.Message}";
+            });
         }
         finally
         {

@@ -1,7 +1,8 @@
 @using PgmqAdminUI.Features.Messages
+@using Microsoft.FluentUI.AspNetCore.Components
 @rendermode InteractiveServer
 @inject Features.Messages.MessageService MessageService
-@inject NotificationService Notifications
+@inject IMessageService NotificationService
 @inject ILogger<ArchivedTab> Logger
 
 <FluentStack Orientation="Orientation.Vertical">
@@ -61,7 +62,10 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to load archived messages for queue {QueueName}", QueueName);
-            Notifications.ShowError($"Failed to load archived messages: {ex.Message}");
+            NotificationService.ShowMessageBar(options => {
+                options.Intent = MessageIntent.Error;
+                options.Body = $"Failed to load archived messages: {ex.Message}";
+            });
         }
         finally
         {
