@@ -1,0 +1,84 @@
+@rendermode InteractiveServer
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager NavigationManager
+@inject ILogger<StatusIndicator> Logger
+@implements IDisposable
+
+<FluentBadge Appearance="@GetBadgeAppearance()" Title="@GetTooltip()">
+    @GetStatusText()
+</FluentBadge>
+
+@code {
+    private bool _isOnline = false;
+    private DateTime? _lastCheckTime;
+    private PeriodicTimer? _timer;
+    private CancellationTokenSource? _cts;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _cts = new CancellationTokenSource();
+            _timer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+
+            // Initial check
+            await CheckHealthAsync();
+
+            // Periodic checks
+            try
+            {
+                while (await _timer.WaitForNextTickAsync(_cts.Token))
+                {
+                    await CheckHealthAsync();
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected when component is disposed
+            }
+        }
+    }
+
+    private async Task CheckHealthAsync()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient();
+            client.BaseAddress = new Uri(NavigationManager.BaseUri);
+            
+            var response = await client.GetAsync("/health");
+            _isOnline = response.IsSuccessStatusCode;
+            _lastCheckTime = DateTime.UtcNow;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Health check failed");
+            _isOnline = false;
+            _lastCheckTime = DateTime.UtcNow;
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private Appearance GetBadgeAppearance() =>
+        _isOnline ? Appearance.Accent : Appearance.Lightweight;
+
+    private string GetStatusText() =>
+        _isOnline ? "Online" : "Offline";
+
+    private string GetTooltip()
+    {
+        if (_lastCheckTime == null)
+            return "Checking status...";
+
+        var elapsed = DateTime.UtcNow - _lastCheckTime.Value;
+        return $"Last checked: {elapsed.TotalSeconds:F0}s ago";
+    }
+
+    public void Dispose()
+    {
+        _cts?.Cancel();
+        _cts?.Dispose();
+        _timer?.Dispose();
+    }
+}

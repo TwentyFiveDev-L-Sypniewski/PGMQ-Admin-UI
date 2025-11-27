@@ -1,4 +1,4 @@
-namespace PgmqAdminUI.Models;
+namespace PgmqAdminUI.Features.Queues;
 
 public sealed class QueueDto
 {
