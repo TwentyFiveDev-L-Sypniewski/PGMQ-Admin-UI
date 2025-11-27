@@ -2,9 +2,10 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 // PostgreSQL with PGMQ extension (using Tembo's pg18-pgmq image)
 var postgres = builder.AddPostgres("postgres")
-    .WithImage("quay.io/tembo/pg18-pgmq", "v1.7.0")
+    .WithImage("ghcr.io/pgmq/pg18-pgmq", "v1.7.0")
     .WithPgAdmin()
-    .AddDatabase("pgmq");
+    .WithContainerName("pgmq-postgres-pgmq-admin-ui")
+    .WithDataVolume();
 
 // Blazor Admin UI
 builder.AddProject<Projects.PgmqAdminUI>("pgmq-admin-ui")
