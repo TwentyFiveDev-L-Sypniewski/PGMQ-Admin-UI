@@ -29,6 +29,7 @@ public class MessagesTabTests : FluentTestBase
     [Test]
     public async Task RendersMessagesTabTitle()
     {
+        using var _ = new AssertionScope();
         A.CallTo(() => _fakeQueueService.GetQueueDetailAsync(
             A<string>._,
             A<int>._,
@@ -49,12 +50,13 @@ public class MessagesTabTests : FluentTestBase
         await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
 
         var title = cut.Find("h3");
-        await Assert.That(title.TextContent).Contains("Messages");
+        title.TextContent.Should().Contain("Messages");
     }
 
     [Test]
     public async Task ShowsLoadingIndicator_WhenLoadingMessages()
     {
+        using var _ = new AssertionScope();
         var tcs = new TaskCompletionSource<QueueDetailDto>();
         A.CallTo(() => _fakeQueueService.GetQueueDetailAsync(
             A<string>._,
@@ -66,7 +68,7 @@ public class MessagesTabTests : FluentTestBase
         var cut = Render<MessagesTab>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        await Assert.That(cut.FindAll("fluent-progress-ring").Count).IsGreaterThan(0);
+        cut.FindAll("fluent-progress-ring").Count.Should().BeGreaterThan(0);
 
         tcs.SetResult(new QueueDetailDto
         {
@@ -81,6 +83,7 @@ public class MessagesTabTests : FluentTestBase
     [Test]
     public async Task DisplaysMessageGrid_WhenMessagesExist()
     {
+        using var _ = new AssertionScope();
         var messages = new List<MessageDto>
         {
             new() { MsgId = 1, Message = "{\"test\": \"data1\"}", EnqueuedAt = DateTimeOffset.UtcNow, ReadCount = 0 },
@@ -106,12 +109,13 @@ public class MessagesTabTests : FluentTestBase
 
         await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
 
-        await Assert.That(cut.FindAll("fluent-data-grid").Count).IsEqualTo(1);
+        cut.FindAll("fluent-data-grid").Count.Should().Be(1);
     }
 
     [Test]
     public async Task ShowsInfoMessage_WhenNoMessagesExist()
     {
+        using var _ = new AssertionScope();
         A.CallTo(() => _fakeQueueService.GetQueueDetailAsync(
             A<string>._,
             A<int>._,
@@ -132,12 +136,13 @@ public class MessagesTabTests : FluentTestBase
         await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
 
         var messageBar = cut.Find("fluent-message-bar");
-        await Assert.That(messageBar).IsNotNull();
+        messageBar.Should().NotBeNull();
     }
 
     [Test]
     public async Task ShowsRefreshButton()
     {
+        using var _ = new AssertionScope();
         A.CallTo(() => _fakeQueueService.GetQueueDetailAsync(
             A<string>._,
             A<int>._,
@@ -158,12 +163,13 @@ public class MessagesTabTests : FluentTestBase
         var buttons = cut.FindAll("fluent-button");
         var refreshButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Refresh"));
 
-        await Assert.That(refreshButton).IsNotNull();
+        refreshButton.Should().NotBeNull();
     }
 
     [Test]
     public async Task CallsDeleteMessage_WhenDeleteButtonClicked()
     {
+        using var _ = new AssertionScope();
         var messages = new List<MessageDto>
         {
             new() { MsgId = 1, Message = "{\"test\": \"data1\"}", EnqueuedAt = DateTimeOffset.UtcNow, ReadCount = 0 }
@@ -207,6 +213,7 @@ public class MessagesTabTests : FluentTestBase
     [Test]
     public async Task CallsArchiveMessage_WhenArchiveButtonClicked()
     {
+        using var _ = new AssertionScope();
         var messages = new List<MessageDto>
         {
             new() { MsgId = 1, Message = "{\"test\": \"data1\"}", EnqueuedAt = DateTimeOffset.UtcNow, ReadCount = 0 }
@@ -250,6 +257,7 @@ public class MessagesTabTests : FluentTestBase
     [Test]
     public async Task ShowsErrorMessage_WhenLoadMessagesFails()
     {
+        using var _ = new AssertionScope();
         A.CallTo(() => _fakeQueueService.GetQueueDetailAsync(
             A<string>._,
             A<int>._,

@@ -24,6 +24,7 @@ public class MetricsTabTests : FluentTestBase
     [Test]
     public async Task RendersMetricsTabTitle()
     {
+        using var _ = new AssertionScope();
         A.CallTo(() => _fakeQueueService.GetQueueStatsAsync(A<string>._, A<CancellationToken>._))
             .Returns(Task.FromResult<QueueStatsDto?>(new QueueStatsDto
             {
@@ -41,12 +42,13 @@ public class MetricsTabTests : FluentTestBase
         await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
 
         var title = cut.Find("h3");
-        await Assert.That(title.TextContent).Contains("Queue Metrics");
+        title.TextContent.Should().Contain("Queue Metrics");
     }
 
     [Test]
     public async Task ShowsLoadingIndicator_WhenLoadingMetrics()
     {
+        using var _ = new AssertionScope();
         var tcs = new TaskCompletionSource<QueueStatsDto?>();
         A.CallTo(() => _fakeQueueService.GetQueueStatsAsync(A<string>._, A<CancellationToken>._))
             .Returns(tcs.Task);
@@ -54,7 +56,7 @@ public class MetricsTabTests : FluentTestBase
         var cut = Render<MetricsTab>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        await Assert.That(cut.FindAll("fluent-progress-ring").Count).IsGreaterThan(0);
+        cut.FindAll("fluent-progress-ring").Count.Should().BeGreaterThan(0);
 
         tcs.SetResult(null);
     }
@@ -62,6 +64,7 @@ public class MetricsTabTests : FluentTestBase
     [Test]
     public async Task DisplaysMetricsCards_WhenStatsLoaded()
     {
+        using var _ = new AssertionScope();
         A.CallTo(() => _fakeQueueService.GetQueueStatsAsync(A<string>._, A<CancellationToken>._))
             .Returns(Task.FromResult<QueueStatsDto?>(new QueueStatsDto
             {
@@ -79,12 +82,13 @@ public class MetricsTabTests : FluentTestBase
         await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
 
         var cards = cut.FindAll("fluent-card");
-        await Assert.That(cards.Count).IsGreaterThanOrEqualTo(5); // At least 5 metric cards
+        cards.Count.Should().BeGreaterThanOrEqualTo(5); // At least 5 metric cards
     }
 
     [Test]
     public async Task DisplaysQueueLength()
     {
+        using var _ = new AssertionScope();
         A.CallTo(() => _fakeQueueService.GetQueueStatsAsync(A<string>._, A<CancellationToken>._))
             .Returns(Task.FromResult<QueueStatsDto?>(new QueueStatsDto
             {
@@ -101,12 +105,13 @@ public class MetricsTabTests : FluentTestBase
 
         await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
 
-        await Assert.That(cut.Markup).Contains("42");
+        cut.Markup.Should().Contain("42");
     }
 
     [Test]
     public async Task DisplaysTotalMessages()
     {
+        using var _ = new AssertionScope();
         A.CallTo(() => _fakeQueueService.GetQueueStatsAsync(A<string>._, A<CancellationToken>._))
             .Returns(Task.FromResult<QueueStatsDto?>(new QueueStatsDto
             {
@@ -123,12 +128,13 @@ public class MetricsTabTests : FluentTestBase
 
         await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
 
-        await Assert.That(cut.Markup).Contains("999");
+        cut.Markup.Should().Contain("999");
     }
 
     [Test]
     public async Task DisplaysNA_WhenMessageAgesAreNull()
     {
+        using var _ = new AssertionScope();
         A.CallTo(() => _fakeQueueService.GetQueueStatsAsync(A<string>._, A<CancellationToken>._))
             .Returns(Task.FromResult<QueueStatsDto?>(new QueueStatsDto
             {
@@ -145,12 +151,13 @@ public class MetricsTabTests : FluentTestBase
 
         await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
 
-        await Assert.That(cut.Markup).Contains("N/A");
+        cut.Markup.Should().Contain("N/A");
     }
 
     [Test]
     public async Task ShowsAutoRefreshMessage()
     {
+        using var _ = new AssertionScope();
         A.CallTo(() => _fakeQueueService.GetQueueStatsAsync(A<string>._, A<CancellationToken>._))
             .Returns(Task.FromResult<QueueStatsDto?>(new QueueStatsDto
             {
@@ -167,12 +174,13 @@ public class MetricsTabTests : FluentTestBase
 
         await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
 
-        await Assert.That(cut.Markup).Contains("Auto-refreshing");
+        cut.Markup.Should().Contain("Auto-refreshing");
     }
 
     [Test]
     public async Task ShowsErrorMessage_WhenStatsIsNull()
     {
+        using var _ = new AssertionScope();
         A.CallTo(() => _fakeQueueService.GetQueueStatsAsync(A<string>._, A<CancellationToken>._))
             .Returns(Task.FromResult<QueueStatsDto?>(null));
 
@@ -182,12 +190,13 @@ public class MetricsTabTests : FluentTestBase
         await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
 
         var messageBar = cut.Find("fluent-message-bar");
-        await Assert.That(messageBar.TextContent).Contains("Failed to load metrics");
+        messageBar.TextContent.Should().Contain("Failed to load metrics");
     }
 
     [Test]
     public async Task ShowsErrorNotification_WhenLoadMetricsFails()
     {
+        using var _ = new AssertionScope();
         A.CallTo(() => _fakeQueueService.GetQueueStatsAsync(A<string>._, A<CancellationToken>._))
             .Throws(new Exception("Database connection failed"));
 

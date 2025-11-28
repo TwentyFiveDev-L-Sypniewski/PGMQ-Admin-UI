@@ -24,17 +24,19 @@ public class SendMessageDialogTests : FluentTestBase
     [Test]
     public async Task RendersDialogTitle()
     {
+        using var _ = new AssertionScope();
         var cut = Render<SendMessageDialog>(parameters => parameters
             .Add(p => p.IsOpen, true)
             .Add(p => p.QueueName, "test-queue"));
 
         var title = cut.Find("h3");
-        await Assert.That(title.TextContent).Contains("Send Message");
+        title.TextContent.Should().Contain("Send Message");
     }
 
     [Test]
     public async Task ShowsQueueNameInput_AsReadonly()
     {
+        using var _ = new AssertionScope();
         var cut = Render<SendMessageDialog>(parameters => parameters
             .Add(p => p.IsOpen, true)
             .Add(p => p.QueueName, "test-queue"));
@@ -42,34 +44,37 @@ public class SendMessageDialogTests : FluentTestBase
         var textFields = cut.FindAll("fluent-text-field");
         var queueNameField = textFields.FirstOrDefault();
 
-        await Assert.That(queueNameField).IsNotNull();
+        queueNameField.Should().NotBeNull();
     }
 
     [Test]
     public async Task ShowsMessageTextArea()
     {
+        using var _ = new AssertionScope();
         var cut = Render<SendMessageDialog>(parameters => parameters
             .Add(p => p.IsOpen, true)
             .Add(p => p.QueueName, "test-queue"));
 
         var textAreas = cut.FindAll("fluent-text-area");
-        await Assert.That(textAreas.Count).IsGreaterThan(0);
+        textAreas.Count.Should().BeGreaterThan(0);
     }
 
     [Test]
     public async Task ShowsDelayNumberField()
     {
+        using var _ = new AssertionScope();
         var cut = Render<SendMessageDialog>(parameters => parameters
             .Add(p => p.IsOpen, true)
             .Add(p => p.QueueName, "test-queue"));
 
         var numberFields = cut.FindAll("fluent-number-field");
-        await Assert.That(numberFields.Count).IsGreaterThan(0);
+        numberFields.Count.Should().BeGreaterThan(0);
     }
 
     [Test]
     public async Task ShowsSendAndCancelButtons()
     {
+        using var _ = new AssertionScope();
         var cut = Render<SendMessageDialog>(parameters => parameters
             .Add(p => p.IsOpen, true)
             .Add(p => p.QueueName, "test-queue"));
@@ -78,13 +83,14 @@ public class SendMessageDialogTests : FluentTestBase
         var sendButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Send"));
         var cancelButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Cancel"));
 
-        await Assert.That(sendButton).IsNotNull();
-        await Assert.That(cancelButton).IsNotNull();
+        sendButton.Should().NotBeNull();
+        cancelButton.Should().NotBeNull();
     }
 
     [Test]
     public async Task CallsMessageService_WhenFormSubmittedWithValidJson()
     {
+        using var _ = new AssertionScope();
         A.CallTo(() => _fakeMessageService.SendMessageAsync(
             A<string>._,
             A<string>._,
@@ -115,6 +121,7 @@ public class SendMessageDialogTests : FluentTestBase
     [Test]
     public async Task ShowsErrorMessage_WhenJsonIsInvalid()
     {
+        using var _ = new AssertionScope();
         var cut = Render<SendMessageDialog>(parameters => parameters
             .Add(p => p.IsOpen, true)
             .Add(p => p.QueueName, "test-queue"));
@@ -128,12 +135,13 @@ public class SendMessageDialogTests : FluentTestBase
         await Task.Delay(100).ConfigureAwait(false); // Wait for validation
 
         var errorBars = cut.FindAll("fluent-message-bar");
-        await Assert.That(errorBars.Count).IsGreaterThan(0);
+        errorBars.Count.Should().BeGreaterThan(0);
     }
 
     [Test]
     public async Task ShowsSuccessNotification_WhenMessageSentSuccessfully()
     {
+        using var _ = new AssertionScope();
         A.CallTo(() => _fakeMessageService.SendMessageAsync(
             A<string>._,
             A<string>._,
@@ -160,6 +168,7 @@ public class SendMessageDialogTests : FluentTestBase
     [Test]
     public async Task ShowsErrorNotification_WhenSendMessageFails()
     {
+        using var _ = new AssertionScope();
         A.CallTo(() => _fakeMessageService.SendMessageAsync(
             A<string>._,
             A<string>._,

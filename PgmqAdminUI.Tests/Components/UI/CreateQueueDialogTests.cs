@@ -24,50 +24,55 @@ public class CreateQueueDialogTests : FluentTestBase
     [Test]
     public async Task RendersDialogTitle()
     {
+        using var _ = new AssertionScope();
         var cut = Render<CreateQueueDialog>(parameters => parameters
             .Add(p => p.IsOpen, true));
 
         var title = cut.Find("h3");
-        await Assert.That(title.TextContent).Contains("Create New Queue");
+        title.TextContent.Should().Contain("Create New Queue");
     }
 
     [Test]
     public async Task ShowsQueueNameInput()
     {
+        using var _ = new AssertionScope();
         var cut = Render<CreateQueueDialog>(parameters => parameters
             .Add(p => p.IsOpen, true));
 
         var textFields = cut.FindAll("fluent-text-field");
-        await Assert.That(textFields.Count).IsGreaterThan(0);
+        textFields.Count.Should().BeGreaterThan(0);
     }
 
     [Test]
     public async Task ShowsCreateButton()
     {
+        using var _ = new AssertionScope();
         var cut = Render<CreateQueueDialog>(parameters => parameters
             .Add(p => p.IsOpen, true));
 
         var buttons = cut.FindAll("fluent-button");
         var createButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Create"));
 
-        await Assert.That(createButton).IsNotNull();
+        createButton.Should().NotBeNull();
     }
 
     [Test]
     public async Task ShowsCancelButton()
     {
+        using var _ = new AssertionScope();
         var cut = Render<CreateQueueDialog>(parameters => parameters
             .Add(p => p.IsOpen, true));
 
         var buttons = cut.FindAll("fluent-button");
         var cancelButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Cancel"));
 
-        await Assert.That(cancelButton).IsNotNull();
+        cancelButton.Should().NotBeNull();
     }
 
     [Test]
     public async Task CallsQueueService_WhenFormSubmittedWithValidData()
     {
+        using var _ = new AssertionScope();
         A.CallTo(() => _fakeQueueService.CreateQueueAsync(A<string>._, A<CancellationToken>._))
             .Returns(Task.CompletedTask);
 
@@ -92,6 +97,7 @@ public class CreateQueueDialogTests : FluentTestBase
     [Test]
     public async Task ShowsSuccessMessage_WhenQueueCreatedSuccessfully()
     {
+        using var _ = new AssertionScope();
         A.CallTo(() => _fakeQueueService.CreateQueueAsync(A<string>._, A<CancellationToken>._))
             .Returns(Task.CompletedTask);
 
@@ -113,6 +119,7 @@ public class CreateQueueDialogTests : FluentTestBase
     [Test]
     public async Task ShowsErrorMessage_WhenQueueCreationFails()
     {
+        using var _ = new AssertionScope();
         A.CallTo(() => _fakeQueueService.CreateQueueAsync(A<string>._, A<CancellationToken>._))
             .Throws(new Exception("Database error"));
 

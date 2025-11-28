@@ -49,6 +49,7 @@ public class ServiceIntegrationTests : IAsyncDisposable
 
         await _queueService!.CreateQueueAsync(queueName).ConfigureAwait(false);
 
+        using var _ = new AssertionScope();
         var queues = await _queueService.ListQueuesAsync().ConfigureAwait(false);
         queues.Any(q => q.Name == queueName).Should().BeTrue();
     }
@@ -59,8 +60,9 @@ public class ServiceIntegrationTests : IAsyncDisposable
         var queueName = $"test-queue-{Guid.NewGuid()}";
 
         await _queueService!.CreateQueueAsync(queueName).ConfigureAwait(false);
-        var deleteResult = await _queueService.DeleteQueueAsync(queueName).ConfigureAwait(false);
 
+        using var _ = new AssertionScope();
+        var deleteResult = await _queueService.DeleteQueueAsync(queueName).ConfigureAwait(false);
         deleteResult.Should().BeTrue();
 
         var queues = await _queueService.ListQueuesAsync().ConfigureAwait(false);
@@ -76,8 +78,8 @@ public class ServiceIntegrationTests : IAsyncDisposable
         await _queueService!.CreateQueueAsync(queueName1).ConfigureAwait(false);
         await _queueService.CreateQueueAsync(queueName2).ConfigureAwait(false);
 
+        using var _ = new AssertionScope();
         var queues = await _queueService.ListQueuesAsync().ConfigureAwait(false);
-
         queues.Any(q => q.Name == queueName1).Should().BeTrue();
         queues.Any(q => q.Name == queueName2).Should().BeTrue();
 
@@ -92,8 +94,8 @@ public class ServiceIntegrationTests : IAsyncDisposable
 
         await _queueService!.CreateQueueAsync(queueName).ConfigureAwait(false);
 
+        using var _ = new AssertionScope();
         var detail = await _queueService.GetQueueDetailAsync(queueName, 1, 10).ConfigureAwait(false);
-
         detail.QueueName.Should().Be(queueName);
         detail.Messages.Should().NotBeNull();
 
@@ -107,8 +109,8 @@ public class ServiceIntegrationTests : IAsyncDisposable
 
         await _queueService!.CreateQueueAsync(queueName).ConfigureAwait(false);
 
+        using var _ = new AssertionScope();
         var stats = await _queueService.GetQueueStatsAsync(queueName).ConfigureAwait(false);
-
         stats.Should().NotBeNull();
         stats!.QueueName.Should().Be(queueName);
         stats.QueueLength.Should().BeGreaterThanOrEqualTo(0);
@@ -124,8 +126,8 @@ public class ServiceIntegrationTests : IAsyncDisposable
 
         await _queueService!.CreateQueueAsync(queueName).ConfigureAwait(false);
 
+        using var _ = new AssertionScope();
         var stats = await _queueService.GetQueueStatsAsync(queueName).ConfigureAwait(false);
-
         stats.Should().NotBeNull();
         stats!.NewestMsgAgeSec.Should().BeNull();
         stats.OldestMsgAgeSec.Should().BeNull();
@@ -141,8 +143,8 @@ public class ServiceIntegrationTests : IAsyncDisposable
 
         await _queueService!.CreateQueueAsync(queueName).ConfigureAwait(false);
 
+        using var _ = new AssertionScope();
         var msgId = await _messageService!.SendMessageAsync(queueName, JsonMessage).ConfigureAwait(false);
-
         msgId.Should().BeGreaterThan(0);
 
         await _queueService.DeleteQueueAsync(queueName).ConfigureAwait(false);
@@ -156,10 +158,10 @@ public class ServiceIntegrationTests : IAsyncDisposable
 
         await _queueService!.CreateQueueAsync(queueName).ConfigureAwait(false);
 
+        using var _ = new AssertionScope();
         var statsBefore = await _queueService.GetQueueStatsAsync(queueName).ConfigureAwait(false);
         await _messageService!.SendMessageAsync(queueName, JsonMessage).ConfigureAwait(false);
         var statsAfter = await _queueService.GetQueueStatsAsync(queueName).ConfigureAwait(false);
-
         statsAfter!.TotalMessages.Should().BeGreaterThan(statsBefore!.TotalMessages);
 
         await _queueService.DeleteQueueAsync(queueName).ConfigureAwait(false);
@@ -174,8 +176,8 @@ public class ServiceIntegrationTests : IAsyncDisposable
 
         await _queueService!.CreateQueueAsync(queueName).ConfigureAwait(false);
 
+        using var _ = new AssertionScope();
         var msgId = await _messageService!.SendMessageAsync(queueName, JsonMessage, DelaySeconds).ConfigureAwait(false);
-
         msgId.Should().BeGreaterThan(0);
 
         await _queueService.DeleteQueueAsync(queueName).ConfigureAwait(false);
@@ -189,10 +191,10 @@ public class ServiceIntegrationTests : IAsyncDisposable
 
         await _queueService!.CreateQueueAsync(queueName).ConfigureAwait(false);
 
+        using var _ = new AssertionScope();
         var msgId = await _messageService!.SendMessageAsync(queueName, JsonMessage).ConfigureAwait(false);
         var deleteResult = await _messageService.DeleteMessageAsync(queueName, msgId).ConfigureAwait(false);
-
-        await Assert.That(deleteResult).IsTrue();
+        deleteResult.Should().BeTrue();
 
         await _queueService.DeleteQueueAsync(queueName).ConfigureAwait(false);
     }
@@ -205,10 +207,10 @@ public class ServiceIntegrationTests : IAsyncDisposable
 
         await _queueService!.CreateQueueAsync(queueName).ConfigureAwait(false);
 
+        using var _ = new AssertionScope();
         var msgId = await _messageService!.SendMessageAsync(queueName, JsonMessage).ConfigureAwait(false);
         var archiveResult = await _messageService.ArchiveMessageAsync(queueName, msgId).ConfigureAwait(false);
-
-        await Assert.That(archiveResult).IsTrue();
+        archiveResult.Should().BeTrue();
 
         await _queueService.DeleteQueueAsync(queueName).ConfigureAwait(false);
     }
@@ -222,20 +224,20 @@ public class ServiceIntegrationTests : IAsyncDisposable
 
         await _queueService!.CreateQueueAsync(queueName).ConfigureAwait(false);
 
+        using var _ = new AssertionScope();
         var msgId1 = await _messageService!.SendMessageAsync(queueName, JsonMessage1).ConfigureAwait(false);
         var msgId2 = await _messageService.SendMessageAsync(queueName, JsonMessage2).ConfigureAwait(false);
 
         var stats = await _queueService.GetQueueStatsAsync(queueName).ConfigureAwait(false);
-        await Assert.That(stats!.TotalMessages).IsGreaterThanOrEqualTo(2);
+        stats!.TotalMessages.Should().BeGreaterThanOrEqualTo(2);
 
         var deleteResult1 = await _messageService.DeleteMessageAsync(queueName, msgId1).ConfigureAwait(false);
         var archiveResult2 = await _messageService.ArchiveMessageAsync(queueName, msgId2).ConfigureAwait(false);
-
-        await Assert.That(deleteResult1).IsTrue();
-        await Assert.That(archiveResult2).IsTrue();
+        deleteResult1.Should().BeTrue();
+        archiveResult2.Should().BeTrue();
 
         var queueDeleteResult = await _queueService.DeleteQueueAsync(queueName).ConfigureAwait(false);
-        await Assert.That(queueDeleteResult).IsTrue();
+        queueDeleteResult.Should().BeTrue();
     }
 
     public async ValueTask DisposeAsync()

@@ -10,29 +10,32 @@ public class JsonViewerTests : FluentTestBase
     [Test]
     public async Task RendersJsonContent()
     {
+        using var _ = new AssertionScope();
         const string jsonContent = "{\"test\": \"data\"}";
 
         var cut = Render<JsonViewer>(parameters => parameters
             .Add(p => p.Content, jsonContent));
 
-        await Assert.That(cut.Markup).IsNotNull();
+        cut.Markup.Should().NotBeNull();
     }
 
     [Test]
     public async Task ShowsTruncatedContent_WhenJsonLongerThanMaxLength()
     {
+        using var _ = new AssertionScope();
         var longJson = new string('x', 200);
 
         var cut = Render<JsonViewer>(parameters => parameters
             .Add(p => p.Content, longJson)
             .Add(p => p.MaxLength, 50));
 
-        await Assert.That(cut.Markup).Contains("...");
+        cut.Markup.Should().Contain("...");
     }
 
     [Test]
     public async Task ShowsExpandButton_WhenContentIsTruncated()
     {
+        using var _ = new AssertionScope();
         var longJson = new string('x', 200);
 
         var cut = Render<JsonViewer>(parameters => parameters
@@ -42,12 +45,13 @@ public class JsonViewerTests : FluentTestBase
         var buttons = cut.FindAll("fluent-button");
         var expandButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Expand"));
 
-        await Assert.That(expandButton).IsNotNull();
+        expandButton.Should().NotBeNull();
     }
 
     [Test]
     public async Task DoesNotShowExpandButton_WhenContentNotTruncated()
     {
+        using var _ = new AssertionScope();
         const string shortJson = "{\"test\": \"data\"}";
 
         var cut = Render<JsonViewer>(parameters => parameters
@@ -57,12 +61,13 @@ public class JsonViewerTests : FluentTestBase
         var buttons = cut.FindAll("fluent-button");
         var expandButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Expand"));
 
-        await Assert.That(expandButton).IsNull();
+        expandButton.Should().BeNull();
     }
 
     [Test]
     public async Task ShowsPrettyPrintedJson_WhenExpanded()
     {
+        using var _ = new AssertionScope();
         const string jsonContent = "{\"test\":\"data\",\"nested\":{\"value\":123}}";
 
         var cut = Render<JsonViewer>(parameters => parameters
@@ -77,12 +82,13 @@ public class JsonViewerTests : FluentTestBase
         await Task.Delay(50).ConfigureAwait(false); // Wait for state update
 
         var preElements = cut.FindAll("pre");
-        await Assert.That(preElements.Count).IsGreaterThan(0);
+        preElements.Count.Should().BeGreaterThan(0);
     }
 
     [Test]
     public async Task ShowsCollapseButton_WhenExpanded()
     {
+        using var _ = new AssertionScope();
         const string jsonContent = "{\"test\":\"data\"}";
 
         var cut = Render<JsonViewer>(parameters => parameters
@@ -99,12 +105,13 @@ public class JsonViewerTests : FluentTestBase
         var collapseButton = cut.FindAll("fluent-button")
             .FirstOrDefault(b => b.TextContent.Contains("Collapse"));
 
-        await Assert.That(collapseButton).IsNotNull();
+        collapseButton.Should().NotBeNull();
     }
 
     [Test]
     public async Task TogglesExpansion_WhenButtonClicked()
     {
+        using var _ = new AssertionScope();
         const string jsonContent = "{\"test\":\"data\"}";
 
         var cut = Render<JsonViewer>(parameters => parameters
@@ -114,7 +121,7 @@ public class JsonViewerTests : FluentTestBase
         // Initially collapsed
         var expandButton = cut.FindAll("fluent-button")
             .FirstOrDefault(b => b.TextContent.Contains("Expand"));
-        await Assert.That(expandButton).IsNotNull();
+        expandButton.Should().NotBeNull();
 
         // Click to expand
         expandButton?.Click();
@@ -123,7 +130,7 @@ public class JsonViewerTests : FluentTestBase
         // Now should show collapse button
         var collapseButton = cut.FindAll("fluent-button")
             .FirstOrDefault(b => b.TextContent.Contains("Collapse"));
-        await Assert.That(collapseButton).IsNotNull();
+        collapseButton.Should().NotBeNull();
 
         // Click to collapse
         collapseButton?.Click();
@@ -132,42 +139,45 @@ public class JsonViewerTests : FluentTestBase
         // Should show expand button again
         expandButton = cut.FindAll("fluent-button")
             .FirstOrDefault(b => b.TextContent.Contains("Expand"));
-        await Assert.That(expandButton).IsNotNull();
+        expandButton.Should().NotBeNull();
     }
 
     [Test]
     public async Task HandlesInvalidJson_Gracefully()
     {
+        using var _ = new AssertionScope();
         const string invalidJson = "not valid json at all";
 
         var cut = Render<JsonViewer>(parameters => parameters
             .Add(p => p.Content, invalidJson));
 
         // Should still render without throwing
-        await Assert.That(cut.Markup).IsNotNull();
+        cut.Markup.Should().NotBeNull();
     }
 
     [Test]
     public async Task UsesDefaultMaxLength_WhenNotSpecified()
     {
+        using var _ = new AssertionScope();
         var jsonContent = new string('x', 150);
 
         var cut = Render<JsonViewer>(parameters => parameters
             .Add(p => p.Content, jsonContent));
 
         // Default MaxLength is 100, so should be truncated
-        await Assert.That(cut.Markup).Contains("...");
+        cut.Markup.Should().Contain("...");
     }
 
     [Test]
     public async Task ShowsFullContent_WhenShorterThanMaxLength()
     {
+        using var _ = new AssertionScope();
         const string jsonContent = "{\"short\": \"content\"}";
 
         var cut = Render<JsonViewer>(parameters => parameters
             .Add(p => p.Content, jsonContent)
             .Add(p => p.MaxLength, 100));
 
-        await Assert.That(cut.Markup).Contains(jsonContent);
+        cut.Markup.Should().Contain(jsonContent);
     }
 }
