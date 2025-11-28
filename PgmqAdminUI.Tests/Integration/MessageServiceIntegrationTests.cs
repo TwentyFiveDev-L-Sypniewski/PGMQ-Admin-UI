@@ -9,7 +9,7 @@ namespace PgmqAdminUI.Tests.Integration;
 public class MessageServiceIntegrationTests(PostgresFixture fixture)
 {
     private QueueService? _queueService;
-    private MessageService? _messageService;
+    private MessageService? _sut;
 
     [Before(Test)]
     public async Task SetupAsync()
@@ -19,7 +19,7 @@ public class MessageServiceIntegrationTests(PostgresFixture fixture)
         var messageLogger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<MessageService>();
 
         _queueService = new QueueService(fixture.PostgresConnectionString, queueLogger);
-        _messageService = new MessageService(fixture.PostgresConnectionString, messageLogger);
+        _sut = new MessageService(fixture.PostgresConnectionString, messageLogger);
     }
 
     [Test]
@@ -31,7 +31,7 @@ public class MessageServiceIntegrationTests(PostgresFixture fixture)
         await _queueService!.CreateQueueAsync(queueName);
 
         using var _ = new AssertionScope();
-        var msgId = await _messageService!.SendMessageAsync(queueName, JsonMessage);
+        var msgId = await _sut!.SendMessageAsync(queueName, JsonMessage);
         msgId.Should().BeGreaterThan(0);
 
         await _queueService.DeleteQueueAsync(queueName);
@@ -47,7 +47,7 @@ public class MessageServiceIntegrationTests(PostgresFixture fixture)
 
         using var _ = new AssertionScope();
         var statsBefore = await _queueService.GetQueueStatsAsync(queueName);
-        await _messageService!.SendMessageAsync(queueName, JsonMessage);
+        await _sut!.SendMessageAsync(queueName, JsonMessage);
         var statsAfter = await _queueService.GetQueueStatsAsync(queueName);
         statsAfter!.TotalMessages.Should().BeGreaterThan(statsBefore!.TotalMessages);
 
@@ -64,7 +64,7 @@ public class MessageServiceIntegrationTests(PostgresFixture fixture)
         await _queueService!.CreateQueueAsync(queueName);
 
         using var _ = new AssertionScope();
-        var msgId = await _messageService!.SendMessageAsync(queueName, JsonMessage, DelaySeconds);
+        var msgId = await _sut!.SendMessageAsync(queueName, JsonMessage, DelaySeconds);
         msgId.Should().BeGreaterThan(0);
 
         await _queueService.DeleteQueueAsync(queueName);
@@ -79,8 +79,8 @@ public class MessageServiceIntegrationTests(PostgresFixture fixture)
         await _queueService!.CreateQueueAsync(queueName);
 
         using var _ = new AssertionScope();
-        var msgId = await _messageService!.SendMessageAsync(queueName, JsonMessage);
-        var deleteResult = await _messageService.DeleteMessageAsync(queueName, msgId);
+        var msgId = await _sut!.SendMessageAsync(queueName, JsonMessage);
+        var deleteResult = await _sut.DeleteMessageAsync(queueName, msgId);
         deleteResult.Should().BeTrue();
 
         await _queueService.DeleteQueueAsync(queueName);
@@ -95,8 +95,8 @@ public class MessageServiceIntegrationTests(PostgresFixture fixture)
         await _queueService!.CreateQueueAsync(queueName);
 
         using var _ = new AssertionScope();
-        var msgId = await _messageService!.SendMessageAsync(queueName, JsonMessage);
-        var archiveResult = await _messageService.ArchiveMessageAsync(queueName, msgId);
+        var msgId = await _sut!.SendMessageAsync(queueName, JsonMessage);
+        var archiveResult = await _sut.ArchiveMessageAsync(queueName, msgId);
         archiveResult.Should().BeTrue();
 
         await _queueService.DeleteQueueAsync(queueName);
@@ -112,14 +112,14 @@ public class MessageServiceIntegrationTests(PostgresFixture fixture)
         await _queueService!.CreateQueueAsync(queueName);
 
         using var _ = new AssertionScope();
-        var msgId1 = await _messageService!.SendMessageAsync(queueName, JsonMessage1);
-        var msgId2 = await _messageService.SendMessageAsync(queueName, JsonMessage2);
+        var msgId1 = await _sut!.SendMessageAsync(queueName, JsonMessage1);
+        var msgId2 = await _sut.SendMessageAsync(queueName, JsonMessage2);
 
         var stats = await _queueService.GetQueueStatsAsync(queueName);
         stats!.TotalMessages.Should().BeGreaterThanOrEqualTo(2);
 
-        var deleteResult1 = await _messageService.DeleteMessageAsync(queueName, msgId1);
-        var archiveResult2 = await _messageService.ArchiveMessageAsync(queueName, msgId2);
+        var deleteResult1 = await _sut.DeleteMessageAsync(queueName, msgId1);
+        var archiveResult2 = await _sut.ArchiveMessageAsync(queueName, msgId2);
         deleteResult1.Should().BeTrue();
         archiveResult2.Should().BeTrue();
 
