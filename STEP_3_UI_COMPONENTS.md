@@ -1,6 +1,6 @@
 # Step 3: UI Components - Detailed Implementation Guide
 
-**Status:** 🟩 MOSTLY COMPLETE (Phase 1-5 Complete, Phase 6-8 Pending)
+**Status:** 🟩 MOSTLY COMPLETE (Phase 1-5 Complete, Phase 6-9 Pending)
 **Last Updated:** 2025-11-28
 
 ---
@@ -19,10 +19,11 @@ All core UI implementation is **COMPLETE** and **BUILDING SUCCESSFULLY**:
 **Build Status:** ✅ `dotnet build` passes (0 errors, 0 warnings)
 **Test Status:** ✅ `dotnet test` passes (12/12 tests passing)
 
-### 🟨 Pending (Phases 6-8)
+### 🟨 Pending (Phases 6-9)
 - **Phase 6 - Component Tests**: bUnit tests for UI components (not yet implemented)
-- **Phase 7 - Quality Gates**: Code formatting and manual testing in Aspire environment
-- **Phase 8 - Documentation**: Update IMPLEMENTATION_PLAN.md and AGENTS.md
+- **Phase 7 - E2E Tests**: Playwright tests for complete user flows (not yet implemented)
+- **Phase 8 - Quality Gates**: Code formatting and manual testing in Aspire environment
+- **Phase 9 - Documentation**: Update IMPLEMENTATION_PLAN.md and AGENTS.md
 
 ---
 
@@ -1607,7 +1608,15 @@ public class JsonViewerTests : TestContext
 - [ ] Write `JsonViewerTests.cs` with bUnit
 - [ ] Run `dotnet test` to verify component tests pass
 
-### Phase 7: Quality Gates
+### Phase 7: End-to-End Tests (Playwright)
+- [ ] Install Playwright: `dotnet add package Microsoft.Playwright.NUnit`
+- [ ] Initialize Playwright browsers: `pwsh bin/Debug/net10.0/playwright.ps1 install`
+- [ ] Write `QueueManagementFlowTests.cs` - Full queue CRUD workflow
+- [ ] Write `MessageOperationsFlowTests.cs` - Send/view/archive/delete flow
+- [ ] Write `RealTimeUpdatesFlowTests.cs` - Verify metrics auto-refresh
+- [ ] Run `dotnet test --filter "Category=E2E"` to verify E2E tests pass
+
+### Phase 8: Quality Gates
 - [x] Run `dotnet build` - ensure no errors/warnings (✅ Build successful: 0 errors, 0 warnings)
 - [x] Run `dotnet test` - all tests pass (✅ 12/12 tests passing)
 - [ ] Run `dotnet format` - apply code style
@@ -1623,9 +1632,9 @@ public class JsonViewerTests : TestContext
   - [ ] Test real-time updates (open multiple windows)
   - [ ] Test error scenarios (invalid JSON, connection failure)
 
-### Phase 8: Documentation
+### Phase 9: Documentation
 - [ ] Update `IMPLEMENTATION_PLAN.md` Step 3 status to ✅ COMPLETE
-- [ ] Update `AGENTS.md` if new patterns introduced (real-time, bUnit)
+- [ ] Update `AGENTS.md` if new patterns introduced (real-time, bUnit, Playwright)
 - [ ] Review all code for clarity and adherence to standards
 
 ---
@@ -1658,16 +1667,20 @@ PgmqAdminUI/
 └── Program.cs ✅ (NotificationService via IMessageService)
 
 PgmqAdminUI.Tests/
-└── Components/
-    ├── Pages/
-    │   ├── QueuesTests.cs ➕ (new)
-    │   └── QueueDetailTests.cs ➕ (new)
-    └── UI/
-        ├── CreateQueueDialogTests.cs ➕ (new)
-        ├── SendMessageDialogTests.cs ➕ (new)
-        ├── MessagesTabTests.cs ➕ (new)
-        ├── MetricsTabTests.cs ➕ (new)
-        └── JsonViewerTests.cs ➕ (new)
+├── Components/
+│   ├── Pages/
+│   │   ├── QueuesTests.cs ➕ (new - bUnit)
+│   │   └── QueueDetailTests.cs ➕ (new - bUnit)
+│   └── UI/
+│       ├── CreateQueueDialogTests.cs ➕ (new - bUnit)
+│       ├── SendMessageDialogTests.cs ➕ (new - bUnit)
+│       ├── MessagesTabTests.cs ➕ (new - bUnit)
+│       ├── MetricsTabTests.cs ➕ (new - bUnit)
+│       └── JsonViewerTests.cs ➕ (new - bUnit)
+└── E2E/
+    ├── QueueManagementFlowTests.cs ➕ (new - Playwright)
+    ├── MessageOperationsFlowTests.cs ➕ (new - Playwright)
+    └── RealTimeUpdatesFlowTests.cs ➕ (new - Playwright)
 ```
 
 **Legend:**
