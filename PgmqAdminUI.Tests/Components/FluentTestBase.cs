@@ -25,7 +25,7 @@ public abstract class FluentTestBase : BunitContext, IAsyncDisposable
         // Must use async disposal to properly clean up resources
         if (Services is IAsyncDisposable asyncDisposableServiceProvider)
         {
-            await asyncDisposableServiceProvider.DisposeAsync().ConfigureAwait(false);
+            await asyncDisposableServiceProvider.DisposeAsync();
         }
         else
         {

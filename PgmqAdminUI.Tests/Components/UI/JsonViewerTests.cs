@@ -79,7 +79,7 @@ public class JsonViewerTests : FluentTestBase
 
         expandButton?.Click();
 
-        await Task.Delay(50).ConfigureAwait(false); // Wait for state update
+        await Task.Delay(50); // Wait for state update
 
         var preElements = cut.FindAll("pre");
         preElements.Count.Should().BeGreaterThan(0);
@@ -100,7 +100,7 @@ public class JsonViewerTests : FluentTestBase
 
         expandButton?.Click();
 
-        await Task.Delay(50).ConfigureAwait(false); // Wait for state update
+        await Task.Delay(50); // Wait for state update
 
         var collapseButton = cut.FindAll("fluent-button")
             .FirstOrDefault(b => b.TextContent.Contains("Collapse"));
@@ -125,7 +125,7 @@ public class JsonViewerTests : FluentTestBase
 
         // Click to expand
         expandButton?.Click();
-        await Task.Delay(50).ConfigureAwait(false);
+        await Task.Delay(50);
 
         // Now should show collapse button
         var collapseButton = cut.FindAll("fluent-button")
@@ -134,7 +134,7 @@ public class JsonViewerTests : FluentTestBase
 
         // Click to collapse
         collapseButton?.Click();
-        await Task.Delay(50).ConfigureAwait(false);
+        await Task.Delay(50);
 
         // Should show expand button again
         expandButton = cut.FindAll("fluent-button")

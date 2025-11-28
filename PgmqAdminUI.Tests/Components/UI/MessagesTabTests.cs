@@ -47,7 +47,7 @@ public class MessagesTabTests : FluentTestBase
         var cut = Render<MessagesTab>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
+        await Task.Delay(100); // Wait for async initialization
 
         var title = cut.Find("h3");
         title.TextContent.Should().Contain("Messages");
@@ -107,7 +107,7 @@ public class MessagesTabTests : FluentTestBase
         var cut = Render<MessagesTab>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
+        await Task.Delay(100); // Wait for async initialization
 
         cut.FindAll("fluent-data-grid").Count.Should().Be(1);
     }
@@ -133,7 +133,7 @@ public class MessagesTabTests : FluentTestBase
         var cut = Render<MessagesTab>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
+        await Task.Delay(100); // Wait for async initialization
 
         var messageBar = cut.Find("fluent-message-bar");
         messageBar.Should().NotBeNull();
@@ -198,13 +198,13 @@ public class MessagesTabTests : FluentTestBase
         var cut = Render<MessagesTab>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
+        await Task.Delay(100); // Wait for async initialization
 
         var buttons = cut.FindAll("fluent-button");
         var deleteButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Delete"));
         deleteButton?.Click();
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async operation
+        await Task.Delay(100); // Wait for async operation
 
         A.CallTo(() => _fakeMessageService.DeleteMessageAsync("test-queue", 1, A<CancellationToken>._))
             .MustHaveHappened();
@@ -242,13 +242,13 @@ public class MessagesTabTests : FluentTestBase
         var cut = Render<MessagesTab>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
+        await Task.Delay(100); // Wait for async initialization
 
         var buttons = cut.FindAll("fluent-button");
         var archiveButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Archive"));
         archiveButton?.Click();
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async operation
+        await Task.Delay(100); // Wait for async operation
 
         A.CallTo(() => _fakeMessageService.ArchiveMessageAsync("test-queue", 1, A<CancellationToken>._))
             .MustHaveHappened();
@@ -268,7 +268,7 @@ public class MessagesTabTests : FluentTestBase
         var cut = Render<MessagesTab>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
+        await Task.Delay(100); // Wait for async initialization
 
         A.CallTo(() => _fakeNotificationService.ShowMessageBar(A<Action<MessageOptions>>._))
             .MustHaveHappened();

@@ -42,10 +42,10 @@ await using (var scope = app.Services.CreateAsyncScope())
     try
     {
         await using var connection = new NpgsqlConnection(connectionString);
-        await connection.OpenAsync().ConfigureAwait(false);
+        await connection.OpenAsync();
 
         await using var command = new NpgsqlCommand("CREATE EXTENSION IF NOT EXISTS pgmq CASCADE;", connection);
-        await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+        await command.ExecuteNonQueryAsync();
 
         logger.LogInformation("PGMQ extension initialized successfully");
     }

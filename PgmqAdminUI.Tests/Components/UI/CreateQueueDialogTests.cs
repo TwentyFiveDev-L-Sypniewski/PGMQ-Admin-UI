@@ -83,12 +83,12 @@ public class CreateQueueDialogTests : FluentTestBase
             .Add(p => p.OnQueueCreated, () => { onQueueCreatedCalled = true; return Task.CompletedTask; }));
 
         var input = cut.Find("fluent-text-field");
-        await cut.InvokeAsync(() => input.Change("test-queue")).ConfigureAwait(false);
+        await cut.InvokeAsync(() => input.Change("test-queue"));
 
         var form = cut.Find("form");
-        await cut.InvokeAsync(() => form.Submit()).ConfigureAwait(false);
+        await cut.InvokeAsync(() => form.Submit());
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async operation
+        await Task.Delay(100); // Wait for async operation
 
         A.CallTo(() => _fakeQueueService.CreateQueueAsync("test-queue", A<CancellationToken>._))
             .MustHaveHappened();
@@ -105,12 +105,12 @@ public class CreateQueueDialogTests : FluentTestBase
             .Add(p => p.IsOpen, true));
 
         var input = cut.Find("fluent-text-field");
-        await cut.InvokeAsync(() => input.Change("test-queue")).ConfigureAwait(false);
+        await cut.InvokeAsync(() => input.Change("test-queue"));
 
         var form = cut.Find("form");
-        await cut.InvokeAsync(() => form.Submit()).ConfigureAwait(false);
+        await cut.InvokeAsync(() => form.Submit());
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async operation
+        await Task.Delay(100); // Wait for async operation
 
         A.CallTo(() => _fakeMessageService.ShowMessageBar(A<Action<MessageOptions>>._))
             .MustHaveHappened();
@@ -127,12 +127,12 @@ public class CreateQueueDialogTests : FluentTestBase
             .Add(p => p.IsOpen, true));
 
         var input = cut.Find("fluent-text-field");
-        await cut.InvokeAsync(() => input.Change("test-queue")).ConfigureAwait(false);
+        await cut.InvokeAsync(() => input.Change("test-queue"));
 
         var form = cut.Find("form");
-        await cut.InvokeAsync(() => form.Submit()).ConfigureAwait(false);
+        await cut.InvokeAsync(() => form.Submit());
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async operation
+        await Task.Delay(100); // Wait for async operation
 
         A.CallTo(() => _fakeMessageService.ShowMessageBar(A<Action<MessageOptions>>._))
             .MustHaveHappened();

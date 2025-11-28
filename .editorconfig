@@ -754,7 +754,7 @@ dotnet_diagnostic.rcs1085.severity = suggestion
 dotnet_diagnostic.rcs1089.severity = suggestion
 
 # Add/remove 'ConfigureAwait(false)' call
-dotnet_diagnostic.rcs1090.severity = error
+dotnet_diagnostic.rcs1090.severity = none
 # Options: roslynator_configure_await
 
 # Remove empty region

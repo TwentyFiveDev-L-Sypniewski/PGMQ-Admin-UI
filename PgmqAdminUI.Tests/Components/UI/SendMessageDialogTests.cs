@@ -103,12 +103,12 @@ public class SendMessageDialogTests : FluentTestBase
             .Add(p => p.QueueName, "test-queue"));
 
         var textArea = cut.Find("fluent-text-area");
-        await cut.InvokeAsync(() => textArea.Change("{\"test\": \"data\"}")).ConfigureAwait(false);
+        await cut.InvokeAsync(() => textArea.Change("{\"test\": \"data\"}"));
 
         var form = cut.Find("form");
-        await cut.InvokeAsync(() => form.Submit()).ConfigureAwait(false);
+        await cut.InvokeAsync(() => form.Submit());
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async operation
+        await Task.Delay(100); // Wait for async operation
 
         A.CallTo(() => _fakeMessageService.SendMessageAsync(
             "test-queue",
@@ -127,12 +127,12 @@ public class SendMessageDialogTests : FluentTestBase
             .Add(p => p.QueueName, "test-queue"));
 
         var textArea = cut.Find("fluent-text-area");
-        await cut.InvokeAsync(() => textArea.Change("invalid json")).ConfigureAwait(false);
+        await cut.InvokeAsync(() => textArea.Change("invalid json"));
 
         var form = cut.Find("form");
-        await cut.InvokeAsync(() => form.Submit()).ConfigureAwait(false);
+        await cut.InvokeAsync(() => form.Submit());
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for validation
+        await Task.Delay(100); // Wait for validation
 
         var errorBars = cut.FindAll("fluent-message-bar");
         errorBars.Count.Should().BeGreaterThan(0);
@@ -154,12 +154,12 @@ public class SendMessageDialogTests : FluentTestBase
             .Add(p => p.QueueName, "test-queue"));
 
         var textArea = cut.Find("fluent-text-area");
-        await cut.InvokeAsync(() => textArea.Change("{\"test\": \"data\"}")).ConfigureAwait(false);
+        await cut.InvokeAsync(() => textArea.Change("{\"test\": \"data\"}"));
 
         var form = cut.Find("form");
-        await cut.InvokeAsync(() => form.Submit()).ConfigureAwait(false);
+        await cut.InvokeAsync(() => form.Submit());
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async operation
+        await Task.Delay(100); // Wait for async operation
 
         A.CallTo(() => _fakeNotificationService.ShowMessageBar(A<Action<MessageOptions>>._))
             .MustHaveHappened();
@@ -181,12 +181,12 @@ public class SendMessageDialogTests : FluentTestBase
             .Add(p => p.QueueName, "test-queue"));
 
         var textArea = cut.Find("fluent-text-area");
-        await cut.InvokeAsync(() => textArea.Change("{\"test\": \"data\"}")).ConfigureAwait(false);
+        await cut.InvokeAsync(() => textArea.Change("{\"test\": \"data\"}"));
 
         var form = cut.Find("form");
-        await cut.InvokeAsync(() => form.Submit()).ConfigureAwait(false);
+        await cut.InvokeAsync(() => form.Submit());
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async operation
+        await Task.Delay(100); // Wait for async operation
 
         A.CallTo(() => _fakeNotificationService.ShowMessageBar(A<Action<MessageOptions>>._))
             .MustHaveHappened();

@@ -63,7 +63,7 @@ public class QueuesTests : FluentTestBase
 
         var cut = Render<Queues>();
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
+        await Task.Delay(100); // Wait for async initialization
 
         cut.FindAll("fluent-data-grid").Count.Should().Be(1);
     }
@@ -77,7 +77,7 @@ public class QueuesTests : FluentTestBase
 
         var cut = Render<Queues>();
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
+        await Task.Delay(100); // Wait for async initialization
 
         var messageBar = cut.Find("fluent-message-bar");
         messageBar.Should().NotBeNull();
@@ -107,7 +107,7 @@ public class QueuesTests : FluentTestBase
 
         var cut = Render<Queues>();
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
+        await Task.Delay(100); // Wait for async initialization
 
         A.CallTo(() => _fakeMessageService.ShowMessageBar(A<Action<MessageOptions>>._))
             .MustHaveHappened();

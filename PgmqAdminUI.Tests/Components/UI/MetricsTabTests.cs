@@ -39,7 +39,7 @@ public class MetricsTabTests : FluentTestBase
         var cut = Render<MetricsTab>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
+        await Task.Delay(100); // Wait for async initialization
 
         var title = cut.Find("h3");
         title.TextContent.Should().Contain("Queue Metrics");
@@ -79,7 +79,7 @@ public class MetricsTabTests : FluentTestBase
         var cut = Render<MetricsTab>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
+        await Task.Delay(100); // Wait for async initialization
 
         var cards = cut.FindAll("fluent-card");
         cards.Count.Should().BeGreaterThanOrEqualTo(5); // At least 5 metric cards
@@ -103,7 +103,7 @@ public class MetricsTabTests : FluentTestBase
         var cut = Render<MetricsTab>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
+        await Task.Delay(100); // Wait for async initialization
 
         cut.Markup.Should().Contain("42");
     }
@@ -126,7 +126,7 @@ public class MetricsTabTests : FluentTestBase
         var cut = Render<MetricsTab>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
+        await Task.Delay(100); // Wait for async initialization
 
         cut.Markup.Should().Contain("999");
     }
@@ -149,7 +149,7 @@ public class MetricsTabTests : FluentTestBase
         var cut = Render<MetricsTab>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
+        await Task.Delay(100); // Wait for async initialization
 
         cut.Markup.Should().Contain("N/A");
     }
@@ -172,7 +172,7 @@ public class MetricsTabTests : FluentTestBase
         var cut = Render<MetricsTab>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
+        await Task.Delay(100); // Wait for async initialization
 
         cut.Markup.Should().Contain("Auto-refreshing");
     }
@@ -187,7 +187,7 @@ public class MetricsTabTests : FluentTestBase
         var cut = Render<MetricsTab>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
+        await Task.Delay(100); // Wait for async initialization
 
         var messageBar = cut.Find("fluent-message-bar");
         messageBar.TextContent.Should().Contain("Failed to load metrics");
@@ -203,7 +203,7 @@ public class MetricsTabTests : FluentTestBase
         var cut = Render<MetricsTab>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        await Task.Delay(100).ConfigureAwait(false); // Wait for async initialization
+        await Task.Delay(100); // Wait for async initialization
 
         A.CallTo(() => _fakeMessageService.ShowMessageBar(A<Action<MessageOptions>>._))
             .MustHaveHappened();
