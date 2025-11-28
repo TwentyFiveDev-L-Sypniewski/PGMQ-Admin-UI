@@ -1,0 +1,15 @@
+.json-viewer {
+    font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.json-content {
+    background-color: var(--neutral-layer-2);
+    padding: 1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    max-height: 400px;
+}
+
+.json-truncated {
+    color: var(--neutral-foreground-rest);
+}

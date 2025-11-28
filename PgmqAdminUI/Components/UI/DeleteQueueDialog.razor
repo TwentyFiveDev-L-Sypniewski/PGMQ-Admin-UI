@@ -1,0 +1,70 @@
+@using Microsoft.FluentUI.AspNetCore.Components
+@inject QueueService QueueService
+@inject IMessageService MessageService
+@inject ILogger<DeleteQueueDialog> Logger
+
+<FluentDialog @bind-Open="IsOpen" Modal="true">
+    <h3>Delete Queue</h3>
+    <FluentMessageBar Intent="MessageIntent.Warning">
+        Are you sure you want to delete queue <strong>@QueueName</strong>?
+        This action cannot be undone.
+    </FluentMessageBar>
+
+    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.End" Style="margin-top: 1rem;">
+        <FluentButton Appearance="Appearance.Neutral" OnClick="Cancel">Cancel</FluentButton>
+        <FluentButton Appearance="Appearance.Accent" OnClick="HandleDelete" Loading="@_deleting">
+            Delete
+        </FluentButton>
+    </FluentStack>
+</FluentDialog>
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+    [Parameter] public string? QueueName { get; set; }
+    [Parameter] public EventCallback OnQueueDeleted { get; set; }
+
+    private bool _deleting = false;
+
+    private async Task HandleDelete()
+    {
+        if (string.IsNullOrEmpty(QueueName))
+            return;
+
+        try
+        {
+            _deleting = true;
+            await QueueService.DeleteQueueAsync(QueueName);
+            MessageService.ShowMessageBar(options => {
+                options.Intent = MessageIntent.Success;
+                options.Body = $"Queue '{QueueName}' deleted successfully";
+            });
+
+            await OnQueueDeleted.InvokeAsync();
+            await CloseDialog();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to delete queue {QueueName}", QueueName);
+            MessageService.ShowMessageBar(options => {
+                options.Intent = MessageIntent.Error;
+                options.Body = $"Failed to delete queue: {ex.Message}";
+            });
+        }
+        finally
+        {
+            _deleting = false;
+        }
+    }
+
+    private async Task Cancel()
+    {
+        await CloseDialog();
+    }
+
+    private async Task CloseDialog()
+    {
+        IsOpen = false;
+        await IsOpenChanged.InvokeAsync(IsOpen);
+    }
+}

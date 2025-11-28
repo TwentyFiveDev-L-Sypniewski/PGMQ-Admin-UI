@@ -1,6 +1,6 @@
 using Microsoft.FluentUI.AspNetCore.Components;
+using Npgsql;
 using PgmqAdminUI.Components;
-using PgmqAdminUI.Components.UI;
 using PgmqAdminUI.Features.Queues;
 using MessageService = PgmqAdminUI.Features.Messages.MessageService;
 
@@ -19,12 +19,10 @@ builder.Services.AddHttpClient();
 // Add Fluent UI Blazor components
 builder.Services.AddFluentUIComponents();
 
-// Add notification service
-builder.Services.AddSingleton<NotificationService>();
-
 // Add feature services with connection string from configuration
 var connectionString = builder.Configuration.GetConnectionString("pgmq")
-    ?? throw new InvalidOperationException("Connection string 'pgmq' not found.");
+    ?? builder.Configuration.GetConnectionString("postgres")
+    ?? throw new InvalidOperationException("Connection string 'pgmq' or 'postgres' not found.");
 builder.Services.AddSingleton(sp => new QueueService(
     connectionString,
     sp.GetRequiredService<ILogger<QueueService>>()));
@@ -36,6 +34,27 @@ builder.Services.AddSingleton(sp => new MessageService(
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();
+
+// Initialize PGMQ extension on startup
+await using (var scope = app.Services.CreateAsyncScope())
+{
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        await using var connection = new NpgsqlConnection(connectionString);
+        await connection.OpenAsync().ConfigureAwait(false);
+
+        await using var command = new NpgsqlCommand("CREATE EXTENSION IF NOT EXISTS pgmq CASCADE;", connection);
+        await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+
+        logger.LogInformation("PGMQ extension initialized successfully");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Failed to initialize PGMQ extension");
+        throw;
+    }
+}
 
 app.MapDefaultEndpoints();
 

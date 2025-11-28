@@ -1,0 +1,55 @@
+@using System.Text.Json
+
+<div class="json-viewer">
+    @if (_isExpanded)
+    {
+        <pre class="json-content">@_prettyJson</pre>
+        <FluentButton Appearance="Appearance.Lightweight" OnClick="Toggle">
+            Collapse
+        </FluentButton>
+    }
+    else
+    {
+        <span class="json-truncated">@_truncatedContent</span>
+        @if (_truncatedContent != Content)
+        {
+            <FluentButton Appearance="Appearance.Lightweight" OnClick="Toggle">
+                Expand
+            </FluentButton>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public required string Content { get; set; }
+    [Parameter] public int MaxLength { get; set; } = 100;
+
+    private bool _isExpanded = false;
+    private string _truncatedContent = "";
+    private string _prettyJson = "";
+
+    protected override void OnParametersSet()
+    {
+        _truncatedContent = Content.Length > MaxLength
+            ? Content[..MaxLength] + "..."
+            : Content;
+
+        try
+        {
+            var jsonDoc = JsonDocument.Parse(Content);
+            _prettyJson = JsonSerializer.Serialize(jsonDoc, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+        }
+        catch
+        {
+            _prettyJson = Content;
+        }
+    }
+
+    private void Toggle()
+    {
+        _isExpanded = !_isExpanded;
+    }
+}
