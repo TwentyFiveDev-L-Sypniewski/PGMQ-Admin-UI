@@ -1,41 +1,20 @@
-using Npgsql;
 using PgmqAdminUI.Features.Queues;
-using Testcontainers.PostgreSql;
 
 namespace PgmqAdminUI.Tests.Integration;
 
 [Property("Category", "Integration")]
 [NotInParallel("SharedDatabase")]
-public class QueueServiceIntegrationTests : IAsyncDisposable
+[ClassDataSource<PostgresFixture>(Shared = SharedType.Keyed, Key = "SharedDatabase")]
+public class QueueServiceIntegrationTests(PostgresFixture fixture)
 {
-    private PostgreSqlContainer? _container;
-    private string? _connectionString;
     private QueueService? _queueService;
 
     [Before(Test)]
-    public async Task SetupAsync()
+    public Task SetupAsync()
     {
-        _container = new PostgreSqlBuilder()
-            .WithImage("ghcr.io/pgmq/pg18-pgmq:v1.7.0")
-            .WithName($"pgmq-postgres-queue-integration-tests-{Guid.NewGuid():N}")
-            .WithDatabase("test_db")
-            .WithUsername("test_user")
-            .WithPassword("test_password")
-            .Build();
-
-        await _container.StartAsync();
-
-        _connectionString = _container.GetConnectionString();
-
-        // Enable PGMQ extension
-        await using var connection = new NpgsqlConnection(_connectionString);
-        await connection.OpenAsync();
-        await using var command = new NpgsqlCommand("CREATE EXTENSION IF NOT EXISTS pgmq CASCADE;", connection);
-        await command.ExecuteNonQueryAsync();
-
         var logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<QueueService>();
-
-        _queueService = new QueueService(_connectionString, logger);
+        _queueService = new QueueService(fixture.PostgresConnectionString, logger);
+        return Task.CompletedTask;
     }
 
     [Test]
@@ -129,13 +108,5 @@ public class QueueServiceIntegrationTests : IAsyncDisposable
         stats.OldestMsgAgeSec.Should().BeNull();
 
         await _queueService.DeleteQueueAsync(queueName);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_container is not null)
-        {
-            await _container.DisposeAsync();
-        }
     }
 }

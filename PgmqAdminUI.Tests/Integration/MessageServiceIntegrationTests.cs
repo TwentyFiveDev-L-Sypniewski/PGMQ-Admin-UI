@@ -1,45 +1,25 @@
-using Npgsql;
 using PgmqAdminUI.Features.Messages;
 using PgmqAdminUI.Features.Queues;
-using Testcontainers.PostgreSql;
 
 namespace PgmqAdminUI.Tests.Integration;
 
 [Property("Category", "Integration")]
 [NotInParallel("SharedDatabase")]
-public class MessageServiceIntegrationTests : IAsyncDisposable
+[ClassDataSource<PostgresFixture>(Shared = SharedType.Keyed, Key = "SharedDatabase")]
+public class MessageServiceIntegrationTests(PostgresFixture fixture)
 {
-    private PostgreSqlContainer? _container;
-    private string? _connectionString;
     private QueueService? _queueService;
     private MessageService? _messageService;
 
     [Before(Test)]
-    public async Task SetupAsync()
+    public Task SetupAsync()
     {
-        _container = new PostgreSqlBuilder()
-            .WithImage("ghcr.io/pgmq/pg18-pgmq:v1.7.0")
-            .WithName($"pgmq-postgres-message-integration-tests-{Guid.NewGuid():N}")
-            .WithDatabase("test_db")
-            .WithUsername("test_user")
-            .WithPassword("test_password")
-            .Build();
-
-        await _container.StartAsync();
-
-        _connectionString = _container.GetConnectionString();
-
-        // Enable PGMQ extension
-        await using var connection = new NpgsqlConnection(_connectionString);
-        await connection.OpenAsync();
-        await using var command = new NpgsqlCommand("CREATE EXTENSION IF NOT EXISTS pgmq CASCADE;", connection);
-        await command.ExecuteNonQueryAsync();
-
         var queueLogger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<QueueService>();
         var messageLogger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<MessageService>();
 
-        _queueService = new QueueService(_connectionString, queueLogger);
-        _messageService = new MessageService(_connectionString, messageLogger);
+        _queueService = new QueueService(fixture.PostgresConnectionString, queueLogger);
+        _messageService = new MessageService(fixture.PostgresConnectionString, messageLogger);
+        return Task.CompletedTask;
     }
 
     [Test]
@@ -145,13 +125,5 @@ public class MessageServiceIntegrationTests : IAsyncDisposable
 
         var queueDeleteResult = await _queueService.DeleteQueueAsync(queueName);
         queueDeleteResult.Should().BeTrue();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_container is not null)
-        {
-            await _container.DisposeAsync();
-        }
     }
 }
