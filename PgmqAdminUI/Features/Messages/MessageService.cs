@@ -22,7 +22,7 @@ public partial class MessageService
         try
         {
             var delay = delaySeconds ?? 0;
-            var msgId = await _pgmq.SendAsync(queueName, jsonMessage, delay, ct).ConfigureAwait(false);
+            var msgId = await _pgmq.SendAsync(queueName, jsonMessage, delay, ct);
             LogMessageSent(msgId, queueName);
             return msgId;
         }
@@ -37,7 +37,7 @@ public partial class MessageService
     {
         try
         {
-            var deleted = await _pgmq.DeleteAsync(queueName, msgId, ct).ConfigureAwait(false);
+            var deleted = await _pgmq.DeleteAsync(queueName, msgId, ct);
             return deleted;
         }
         catch (Exception ex)
@@ -51,7 +51,7 @@ public partial class MessageService
     {
         try
         {
-            var archived = await _pgmq.ArchiveAsync(queueName, msgId, ct).ConfigureAwait(false);
+            var archived = await _pgmq.ArchiveAsync(queueName, msgId, ct);
             return archived;
         }
         catch (Exception ex)
@@ -80,10 +80,10 @@ public partial class MessageService
                 """;
 
             await using var connection = new NpgsqlConnection(_connectionString);
-            await connection.OpenAsync(ct).ConfigureAwait(false);
+            await connection.OpenAsync(ct);
 
             await using var cmd = new NpgsqlCommand(sql, connection);
-            await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            await using var reader = await cmd.ExecuteReaderAsync(ct);
 
             var messages = new List<MessageDto>();
             while (await reader.ReadAsync(ct).ConfigureAwait(false))

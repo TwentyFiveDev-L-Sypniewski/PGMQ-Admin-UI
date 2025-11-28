@@ -21,7 +21,7 @@ public partial class QueueService
     {
         try
         {
-            var queues = await _pgmq.ListQueuesAsync(ct).ConfigureAwait(false);
+            var queues = await _pgmq.ListQueuesAsync(ct);
             return queues.Select(q => new QueueDto
             {
                 Name = q.QueueName,
@@ -41,7 +41,7 @@ public partial class QueueService
     {
         try
         {
-            var messages = await _pgmq.ReadBatchAsync<string>(queueName, vt: 0, limit: pageSize, ct).ConfigureAwait(false);
+            var messages = await _pgmq.ReadBatchAsync<string>(queueName, vt: 0, limit: pageSize, ct);
 
             return new QueueDetailDto
             {
@@ -70,7 +70,7 @@ public partial class QueueService
     {
         try
         {
-            await _pgmq.CreateQueueAsync(queueName, ct).ConfigureAwait(false);
+            await _pgmq.CreateQueueAsync(queueName, ct);
             LogQueueCreated(queueName);
         }
         catch (Exception ex)
@@ -84,7 +84,7 @@ public partial class QueueService
     {
         try
         {
-            await _pgmq.DropQueueAsync(queueName, ct).ConfigureAwait(false);
+            await _pgmq.DropQueueAsync(queueName, ct);
             LogQueueDeleted(queueName);
             return true;
         }
@@ -100,12 +100,12 @@ public partial class QueueService
         try
         {
             await using var connection = new NpgsqlConnection(_connectionString);
-            await connection.OpenAsync(ct).ConfigureAwait(false);
+            await connection.OpenAsync(ct);
 
             await using var command = new NpgsqlCommand("SELECT * FROM pgmq.metrics($1)", connection);
             command.Parameters.AddWithValue(queueName);
 
-            await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
+            await using var reader = await command.ExecuteReaderAsync(ct);
 
             if (await reader.ReadAsync(ct).ConfigureAwait(false))
             {
