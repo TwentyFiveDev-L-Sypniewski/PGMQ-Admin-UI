@@ -1562,6 +1562,283 @@ public class JsonViewerTests : TestContext
 
 ---
 
+## End-to-End Testing with Playwright
+
+### Overview
+
+Playwright provides true browser automation for testing complete user flows across multiple pages. Unlike bUnit (component testing), Playwright tests the entire application including:
+
+- Real browser navigation and lifecycle
+- CSS and JavaScript execution
+- Network requests and responses
+- Multi-page workflows
+- Real-time updates and SignalR connections
+
+### Installation & Setup
+
+**Install Playwright Package:**
+```bash
+dotnet add PgmqAdminUI.Tests package Microsoft.Playwright.NUnit
+```
+
+**Initialize Playwright Browsers:**
+```bash
+pwsh bin/Debug/net10.0/playwright.ps1 install
+```
+
+### Test Structure
+
+Playwright tests should be organized in `PgmqAdminUI.Tests/E2E/` directory and tagged with `[Category("E2E")]` for filtering.
+
+### Example: Queue Management Flow Test
+
+**File:** `PgmqAdminUI.Tests/E2E/QueueManagementFlowTests.cs`
+
+```csharp
+using Microsoft.Playwright;
+using Microsoft.Playwright.NUnit;
+using NUnit.Framework;
+
+namespace PgmqAdminUI.Tests.E2E;
+
+[Category("E2E")]
+[TestFixture]
+public class QueueManagementFlowTests : PageTest
+{
+    private const string BaseUrl = "http://localhost:5000"; // Aspire app URL
+
+    [Test]
+    public async Task CompleteQueueLifecycle_CreateSendDeleteQueue_Success()
+    {
+        // Arrange
+        var queueName = $"test_queue_{Guid.NewGuid():N}";
+
+        // Navigate to home page
+        await Page.GotoAsync(BaseUrl);
+        await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Queues" })).ToBeVisibleAsync();
+
+        // Act 1: Create Queue
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Create Queue" }).ClickAsync();
+        await Page.GetByLabel("Queue Name").FillAsync(queueName);
+        await Page.GetByLabel("Visibility Timeout (seconds)").FillAsync("30");
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Create" }).ClickAsync();
+
+        // Assert: Queue appears in list
+        await Expect(Page.GetByText(queueName)).ToBeVisibleAsync();
+
+        // Act 2: Navigate to queue detail
+        await Page.GetByRole(AriaRole.Button, new() { Name = "View Details" }).First.ClickAsync();
+        await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = $"Queue: {queueName}" })).ToBeVisibleAsync();
+
+        // Act 3: Send Message
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Send Message" }).ClickAsync();
+        await Page.GetByLabel("Message (JSON)").FillAsync("{\"test\": \"data\"}");
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Send" }).ClickAsync();
+
+        // Assert: Message appears in Messages tab
+        await Expect(Page.GetByText("\"test\": \"data\"")).ToBeVisibleAsync();
+
+        // Act 4: Navigate back and delete queue
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Back to Queues" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Delete" }).First.ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Delete" }).Last.ClickAsync();
+
+        // Assert: Queue removed from list
+        await Expect(Page.GetByText(queueName)).Not.ToBeVisibleAsync();
+    }
+}
+```
+
+### Example: Message Operations Flow Test
+
+**File:** `PgmqAdminUI.Tests/E2E/MessageOperationsFlowTests.cs`
+
+```csharp
+using Microsoft.Playwright;
+using Microsoft.Playwright.NUnit;
+using NUnit.Framework;
+
+namespace PgmqAdminUI.Tests.E2E;
+
+[Category("E2E")]
+[TestFixture]
+public class MessageOperationsFlowTests : PageTest
+{
+    private const string BaseUrl = "http://localhost:5000";
+    private string _queueName = null!;
+
+    [SetUp]
+    public async Task Setup()
+    {
+        _queueName = $"test_queue_{Guid.NewGuid():N}";
+
+        // Create queue before each test
+        await Page.GotoAsync(BaseUrl);
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Create Queue" }).ClickAsync();
+        await Page.GetByLabel("Queue Name").FillAsync(_queueName);
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Create" }).ClickAsync();
+
+        // Navigate to queue detail
+        await Page.GetByRole(AriaRole.Button, new() { Name = "View Details" }).First.ClickAsync();
+    }
+
+    [TearDown]
+    public async Task Teardown()
+    {
+        // Navigate back and delete test queue
+        await Page.GotoAsync(BaseUrl);
+        await Page.GetByText(_queueName).First.WaitForAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Delete" }).First.ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Delete" }).Last.ClickAsync();
+    }
+
+    [Test]
+    public async Task SendAndArchiveMessage_VerifiesInArchivedTab()
+    {
+        // Act 1: Send message
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Send Message" }).ClickAsync();
+        await Page.GetByLabel("Message (JSON)").FillAsync("{\"flow\": \"archive_test\"}");
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Send" }).ClickAsync();
+
+        // Assert: Message in Messages tab
+        await Expect(Page.GetByText("\"flow\": \"archive_test\"")).ToBeVisibleAsync();
+
+        // Act 2: Archive message
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Archive" }).First.ClickAsync();
+
+        // Assert: Message removed from Messages tab
+        await Expect(Page.GetByText("\"flow\": \"archive_test\"")).Not.ToBeVisibleAsync();
+
+        // Act 3: Navigate to Archived tab
+        await Page.GetByRole(AriaRole.Tab, new() { Name = "Archived" }).ClickAsync();
+
+        // Assert: Message appears in Archived tab
+        await Expect(Page.GetByText("\"flow\": \"archive_test\"")).ToBeVisibleAsync();
+    }
+
+    [Test]
+    public async Task SendAndDeleteMessage_RemovedFromQueue()
+    {
+        // Act 1: Send message
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Send Message" }).ClickAsync();
+        await Page.GetByLabel("Message (JSON)").FillAsync("{\"flow\": \"delete_test\"}");
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Send" }).ClickAsync();
+
+        // Act 2: Delete message
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Delete" }).First.ClickAsync();
+
+        // Assert: Message removed
+        await Expect(Page.GetByText("\"flow\": \"delete_test\"")).Not.ToBeVisibleAsync();
+
+        // Assert: Not in Archived tab either
+        await Page.GetByRole(AriaRole.Tab, new() { Name = "Archived" }).ClickAsync();
+        await Expect(Page.GetByText("\"flow\": \"delete_test\"")).Not.ToBeVisibleAsync();
+    }
+}
+```
+
+### Example: Real-time Updates Test
+
+**File:** `PgmqAdminUI.Tests/E2E/RealTimeUpdatesFlowTests.cs`
+
+```csharp
+using Microsoft.Playwright;
+using Microsoft.Playwright.NUnit;
+using NUnit.Framework;
+
+namespace PgmqAdminUI.Tests.E2E;
+
+[Category("E2E")]
+[TestFixture]
+public class RealTimeUpdatesFlowTests : PageTest
+{
+    private const string BaseUrl = "http://localhost:5000";
+
+    [Test]
+    public async Task MetricsTab_AutoRefreshesEvery30Seconds()
+    {
+        // Arrange: Create queue and navigate to Metrics tab
+        var queueName = $"test_queue_{Guid.NewGuid():N}";
+        await Page.GotoAsync(BaseUrl);
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Create Queue" }).ClickAsync();
+        await Page.GetByLabel("Queue Name").FillAsync(queueName);
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Create" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "View Details" }).First.ClickAsync();
+        await Page.GetByRole(AriaRole.Tab, new() { Name = "Metrics" }).ClickAsync();
+
+        // Get initial queue length
+        var queueLengthElement = Page.GetByText("Queue Length").Locator("..")
+            .Locator("p").First;
+        var initialLength = await queueLengthElement.TextContentAsync();
+
+        // Act: Send a message (in background, simulating real-time update)
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Send Message" }).ClickAsync();
+        await Page.GetByLabel("Message (JSON)").FillAsync("{\"test\": \"realtime\"}");
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Send" }).ClickAsync();
+
+        // Assert: Metrics auto-refresh within 30 seconds and show updated count
+        await Expect(queueLengthElement).Not.ToHaveTextAsync(initialLength ?? "", new() { Timeout = 35000 });
+
+        // Cleanup
+        await Page.GotoAsync(BaseUrl);
+        await Page.GetByText(queueName).First.WaitForAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Delete" }).First.ClickAsync();
+        await Page.GetByRole(AriaRole.Button, new() { Name = "Delete" }).Last.ClickAsync();
+    }
+}
+```
+
+### Running Playwright Tests
+
+**Run all E2E tests:**
+```bash
+dotnet test --filter "Category=E2E"
+```
+
+**Run specific test file:**
+```bash
+dotnet test --filter "FullyQualifiedName~QueueManagementFlowTests"
+```
+
+**Run with headed browser (visible UI):**
+```bash
+HEADED=1 dotnet test --filter "Category=E2E"
+```
+
+**Run with specific browser:**
+```bash
+BROWSER=firefox dotnet test --filter "Category=E2E"
+```
+
+### Best Practices
+
+1. **Use meaningful test names**: Test names should describe the complete flow being tested
+2. **Clean up after tests**: Use `[TearDown]` to delete test queues and data
+3. **Use unique queue names**: Generate GUIDs to avoid conflicts between parallel tests
+4. **Wait for elements**: Use `await Expect().ToBeVisibleAsync()` instead of hard waits
+5. **Test critical flows only**: E2E tests are slower - focus on high-value user journeys
+6. **Run locally with Aspire**: Start Aspire app before running E2E tests
+7. **Tag tests properly**: Use `[Category("E2E")]` for filtering in CI/CD pipelines
+
+### Integration with CI/CD
+
+Playwright tests should run after:
+1. Unit tests pass
+2. Integration tests pass
+3. bUnit component tests pass
+4. Application is deployed to test environment (or Aspire locally)
+
+**Example CI/CD step:**
+```yaml
+- name: Run E2E Tests
+  run: |
+    dotnet run --project PgmqAdminUI.AppHost &
+    sleep 10  # Wait for app to start
+    dotnet test --filter "Category=E2E" --logger "trunit"
+```
+
+---
+
 ## Implementation Checklist
 
 ### Phase 1: Core Layout & Navigation
@@ -1697,6 +1974,8 @@ PgmqAdminUI.Tests/
 - **Blazor Forms & Validation:** https://learn.microsoft.com/en-us/aspnet/core/blazor/forms-validation?view=aspnetcore-10.0
 - **Blazor Components:** https://learn.microsoft.com/en-us/aspnet/core/blazor/components/?view=aspnetcore-10.0
 - **bUnit Documentation:** https://bunit.dev
+- **Playwright for .NET:** https://playwright.dev/dotnet/
+- **Playwright API Reference:** https://playwright.dev/dotnet/docs/api/class-playwright
 
 ### Fluent UI Components Reference
 - **FluentDataGrid:** Tables with sorting, filtering, pagination
@@ -1720,6 +1999,8 @@ PgmqAdminUI.Tests/
 - **Error Handling:** Try-catch + ILogger + NotificationService
 - **Component Communication:** EventCallback for parent-child communication
 - **Service Injection:** @inject ServiceName in Razor components
+- **bUnit Testing:** TestContext + mock services + MarkupMatches for component verification
+- **Playwright E2E:** PageTest + await Page.GotoAsync() + await Expect().ToBeVisibleAsync() for flow testing
 
 ---
 
@@ -1743,16 +2024,17 @@ PgmqAdminUI.Tests/
 - Fast page loads (Static SSR where possible)
 - Consistent Fluent UI design throughout
 - Accessible (keyboard navigation, ARIA support from Fluent UI)
-- Comprehensive test coverage (unit + integration + bUnit component tests)
+- Comprehensive test coverage (unit + integration + bUnit component + Playwright E2E tests)
 - Clean, maintainable code following AGENTS.md standards
 
 ### Quality Gates ✅
 - `dotnet build` completes with 0 errors, 0 warnings
-- `dotnet test` passes all tests (unit, integration, bUnit)
+- `dotnet test` passes all tests (unit, integration, bUnit component, Playwright E2E)
 - `dotnet format` applied
 - Manual testing completed for all workflows
 - Real-time updates work across multiple browser windows
 - Error scenarios handled gracefully
+- E2E tests verify critical user flows end-to-end
 
 ---
 
@@ -1777,10 +2059,12 @@ PgmqAdminUI.Tests/
    - Don't expose technical details to users
 
 4. **Testing Strategy:**
-   - Write bUnit tests alongside component implementation
-   - Mock services using FakeItEasy
-   - Test happy path and error scenarios
-   - Integration tests for critical workflows
+   - **Unit/Integration**: Test services and backend logic
+   - **bUnit (Component)**: Write alongside component implementation, mock services with FakeItEasy
+   - **Playwright (E2E)**: Test critical user flows after components are implemented
+   - Focus E2E tests on high-value journeys (queue lifecycle, message operations, real-time updates)
+   - Test happy path and error scenarios at all levels
+   - Use `[Category("E2E")]` to separate slow E2E tests from fast unit tests
 
 5. **Real-time Updates:**
    - Use PeriodicTimer for auto-refresh
