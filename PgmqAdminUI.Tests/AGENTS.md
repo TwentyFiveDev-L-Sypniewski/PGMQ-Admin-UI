@@ -40,16 +40,11 @@ dotnet test StockStorage/tests/StockStorageTests/ --filter "TestCategory=Unit"
 
 ## Configuration
 
-### Test Fixtures
-
-- Use TUnit `IAsyncInitializer` for container setup
-- Scope: `SharedType.PerTestSession`
-
 ### Test Data & Cleanup
 
 - **Queue Isolation**: Unique names per test: `test-queue-{Guid.NewGuid()}`
-- **Cleanup**: `DeleteQueueAsync()` after each test
-- **No Respawn needed**: PGMQ queues are isolated
+- **Database Reset**: Use Respawn via `fixture.ResetDatabaseAsync()` in `[Before(Test)]` to clean PGMQ tables
+- **Respawn Config**: Targets `pgmq` schema, ignores `meta` table, recreates dynamically (PGMQ creates tables on-the-fly)
 
 ## Anti-Patterns to Avoid
 
@@ -72,11 +67,11 @@ dotnet test StockStorage/tests/StockStorageTests/ --filter "TestCategory=Unit"
 3. **Test Real Behavior**: Verify observable outcomes (DB state, return values), not mock interactions
 4. **PostgreSQL Testcontainers**: Use for integration tests with real DB interactions
 5. **Isolation**: Unique queue names per test: `test-queue-{Guid.NewGuid()}`
-7. **Parallelism**: Use `[NotInParallel("SharedDatabase")]` for integration tests
-8. **Naming**: Descriptive via `[DisplayName]` or pattern: `MethodName_Scenario_ExpectedOutcome`
-9. **Assertions**: Use AwesomeAssertions with `AssertionScope`
-10. **Sociable Tests**: Exercise real collaborators; avoid over-mocking
-11. **No Redundancy**: Don't duplicate integration coverage with unit tests
+6. **Parallelism**: Use `[NotInParallel("SharedDatabase")]` for integration tests
+7. **Naming**: Descriptive via `[DisplayName]` or pattern: `MethodName_Scenario_ExpectedOutcome`
+8. **Assertions**: Use AwesomeAssertions with `AssertionScope`
+9. **Sociable Tests**: Exercise real collaborators; avoid over-mocking
+10. **No Redundancy**: Don't duplicate integration coverage with unit tests
 
 ## Reference
 

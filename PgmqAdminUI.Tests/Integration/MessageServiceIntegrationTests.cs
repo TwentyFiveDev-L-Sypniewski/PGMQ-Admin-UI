@@ -12,14 +12,14 @@ public class MessageServiceIntegrationTests(PostgresFixture fixture)
     private MessageService? _messageService;
 
     [Before(Test)]
-    public Task SetupAsync()
+    public async Task SetupAsync()
     {
+        await fixture.ResetDatabaseAsync();
         var queueLogger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<QueueService>();
         var messageLogger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<MessageService>();
 
         _queueService = new QueueService(fixture.PostgresConnectionString, queueLogger);
         _messageService = new MessageService(fixture.PostgresConnectionString, messageLogger);
-        return Task.CompletedTask;
     }
 
     [Test]

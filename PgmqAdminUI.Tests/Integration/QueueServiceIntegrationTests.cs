@@ -10,11 +10,11 @@ public class QueueServiceIntegrationTests(PostgresFixture fixture)
     private QueueService? _queueService;
 
     [Before(Test)]
-    public Task SetupAsync()
+    public async Task SetupAsync()
     {
+        await fixture.ResetDatabaseAsync();
         var logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<QueueService>();
         _queueService = new QueueService(fixture.PostgresConnectionString, logger);
-        return Task.CompletedTask;
     }
 
     [Test]
