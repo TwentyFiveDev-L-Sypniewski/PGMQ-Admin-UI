@@ -6,7 +6,7 @@ using PgmqAdminUI.Features.Queues;
 namespace PgmqAdminUI.Tests.Components.UI;
 
 [Property("Category", "Component")]
-[Obsolete]
+[Obsolete("This test class has async rendering timing issues with Fluent UI components. Tests fail because FluentMessageBar elements are not found in time. Refactor to use bUnit's WaitForAssertion or WaitForElement mechanisms instead of Task.Delay.")]
 public class MetricsTabTests : FluentTestBase
 {
     private readonly QueueService _fakeQueueService;

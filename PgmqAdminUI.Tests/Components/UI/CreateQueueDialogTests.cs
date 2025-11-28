@@ -6,7 +6,7 @@ using PgmqAdminUI.Features.Queues;
 namespace PgmqAdminUI.Tests.Components.UI;
 
 [Property("Category", "Component")]
-[Obsolete]
+[Obsolete("This test class has async rendering timing issues with Fluent UI components. Refactor to use bUnit's proper async waiting mechanisms instead of Task.Delay.")]
 public class CreateQueueDialogTests : FluentTestBase
 {
     private readonly QueueService _fakeQueueService;
