@@ -7,7 +7,7 @@ namespace PgmqAdminUI.Tests.Integration;
 
 [Property("Category", "Integration")]
 [NotInParallel("SharedDatabase")]
-public class ServiceIntegrationTests : IAsyncDisposable
+public class MessageServiceIntegrationTests : IAsyncDisposable
 {
     private PostgreSqlContainer? _container;
     private string? _connectionString;
@@ -19,7 +19,7 @@ public class ServiceIntegrationTests : IAsyncDisposable
     {
         _container = new PostgreSqlBuilder()
             .WithImage("ghcr.io/pgmq/pg18-pgmq:v1.7.0")
-            .WithName("pgmq-postgres-pgmq-admin-ui-integration-tests")
+            .WithName($"pgmq-postgres-message-integration-tests-{Guid.NewGuid():N}")
             .WithDatabase("test_db")
             .WithUsername("test_user")
             .WithPassword("test_password")
@@ -43,100 +43,7 @@ public class ServiceIntegrationTests : IAsyncDisposable
     }
 
     [Test]
-    public async Task QueueService_CreateQueue_CreatesQueueSuccessfully()
-    {
-        var queueName = $"test-queue-{Guid.NewGuid()}";
-
-        await _queueService!.CreateQueueAsync(queueName);
-
-        using var _ = new AssertionScope();
-        var queues = await _queueService.ListQueuesAsync();
-        queues.Any(q => q.Name == queueName).Should().BeTrue();
-    }
-
-    [Test]
-    public async Task QueueService_DeleteQueue_DeletesQueueSuccessfully()
-    {
-        var queueName = $"test-queue-{Guid.NewGuid()}";
-
-        await _queueService!.CreateQueueAsync(queueName);
-
-        using var _ = new AssertionScope();
-        var deleteResult = await _queueService.DeleteQueueAsync(queueName);
-        deleteResult.Should().BeTrue();
-
-        var queues = await _queueService.ListQueuesAsync();
-        queues.Any(q => q.Name == queueName).Should().BeFalse();
-    }
-
-    [Test]
-    public async Task QueueService_ListQueues_ReturnsAllQueues()
-    {
-        var queueName1 = $"test-queue-{Guid.NewGuid()}";
-        var queueName2 = $"test-queue-{Guid.NewGuid()}";
-
-        await _queueService!.CreateQueueAsync(queueName1);
-        await _queueService.CreateQueueAsync(queueName2);
-
-        using var _ = new AssertionScope();
-        var queues = await _queueService.ListQueuesAsync();
-        queues.Any(q => q.Name == queueName1).Should().BeTrue();
-        queues.Any(q => q.Name == queueName2).Should().BeTrue();
-
-        await _queueService.DeleteQueueAsync(queueName1);
-        await _queueService.DeleteQueueAsync(queueName2);
-    }
-
-    [Test]
-    public async Task QueueService_GetQueueDetail_ReturnsQueueMessages()
-    {
-        var queueName = $"test-queue-{Guid.NewGuid()}";
-
-        await _queueService!.CreateQueueAsync(queueName);
-
-        using var _ = new AssertionScope();
-        var detail = await _queueService.GetQueueDetailAsync(queueName, 1, 10);
-        detail.QueueName.Should().Be(queueName);
-        detail.Messages.Should().NotBeNull();
-
-        await _queueService.DeleteQueueAsync(queueName);
-    }
-
-    [Test]
-    public async Task QueueService_GetQueueStats_ReturnsStatsForQueue()
-    {
-        var queueName = $"test-queue-{Guid.NewGuid()}";
-
-        await _queueService!.CreateQueueAsync(queueName);
-
-        using var _ = new AssertionScope();
-        var stats = await _queueService.GetQueueStatsAsync(queueName);
-        stats.Should().NotBeNull();
-        stats!.QueueName.Should().Be(queueName);
-        stats.QueueLength.Should().BeGreaterThanOrEqualTo(0);
-        stats.TotalMessages.Should().BeGreaterThanOrEqualTo(0);
-
-        await _queueService.DeleteQueueAsync(queueName);
-    }
-
-    [Test]
-    public async Task QueueService_GetQueueStats_ReturnsNullAges_WhenQueueEmpty()
-    {
-        var queueName = $"test-queue-{Guid.NewGuid()}";
-
-        await _queueService!.CreateQueueAsync(queueName);
-
-        using var _ = new AssertionScope();
-        var stats = await _queueService.GetQueueStatsAsync(queueName);
-        stats.Should().NotBeNull();
-        stats!.NewestMsgAgeSec.Should().BeNull();
-        stats.OldestMsgAgeSec.Should().BeNull();
-
-        await _queueService.DeleteQueueAsync(queueName);
-    }
-
-    [Test]
-    public async Task MessageService_SendMessage_SendsMessageSuccessfully()
+    public async Task SendMessage_SendsMessageSuccessfully()
     {
         var queueName = $"test-queue-{Guid.NewGuid()}";
         const string JsonMessage = "{\"data\":\"test\"}";
@@ -151,7 +58,7 @@ public class ServiceIntegrationTests : IAsyncDisposable
     }
 
     [Test]
-    public async Task MessageService_SendMessage_IncrementsQueueStats()
+    public async Task SendMessage_IncrementsQueueStats()
     {
         var queueName = $"test-queue-{Guid.NewGuid()}";
         const string JsonMessage = "{\"data\":\"test\"}";
@@ -168,7 +75,7 @@ public class ServiceIntegrationTests : IAsyncDisposable
     }
 
     [Test]
-    public async Task MessageService_SendMessageWithDelay_SendsMessageSuccessfully()
+    public async Task SendMessageWithDelay_SendsMessageSuccessfully()
     {
         var queueName = $"test-queue-{Guid.NewGuid()}";
         const string JsonMessage = "{\"data\":\"test\"}";
@@ -184,7 +91,7 @@ public class ServiceIntegrationTests : IAsyncDisposable
     }
 
     [Test]
-    public async Task MessageService_DeleteMessage_DeletesMessageSuccessfully()
+    public async Task DeleteMessage_DeletesMessageSuccessfully()
     {
         var queueName = $"test-queue-{Guid.NewGuid()}";
         const string JsonMessage = "{\"data\":\"test\"}";
@@ -200,7 +107,7 @@ public class ServiceIntegrationTests : IAsyncDisposable
     }
 
     [Test]
-    public async Task MessageService_ArchiveMessage_ArchivesMessageSuccessfully()
+    public async Task ArchiveMessage_ArchivesMessageSuccessfully()
     {
         var queueName = $"test-queue-{Guid.NewGuid()}";
         const string JsonMessage = "{\"data\":\"test\"}";
@@ -216,7 +123,7 @@ public class ServiceIntegrationTests : IAsyncDisposable
     }
 
     [Test]
-    public async Task Integration_CompleteWorkflow_CreateSendDeleteQueue()
+    public async Task CompleteWorkflow_CreateSendDeleteQueue()
     {
         var queueName = $"test-queue-{Guid.NewGuid()}";
         const string JsonMessage1 = "{\"order_id\":1001}";
