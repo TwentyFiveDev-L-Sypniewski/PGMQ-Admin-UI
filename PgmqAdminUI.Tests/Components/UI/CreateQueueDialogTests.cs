@@ -6,7 +6,6 @@ using PgmqAdminUI.Features.Queues;
 namespace PgmqAdminUI.Tests.Components.UI;
 
 [Property("Category", "Component")]
-[Obsolete("This test class has async rendering timing issues with Fluent UI components. Refactor to use bUnit's proper async waiting mechanisms instead of Task.Delay.")]
 public class CreateQueueDialogTests : FluentTestBase
 {
     private readonly QueueService _fakeQueueService;
@@ -24,55 +23,69 @@ public class CreateQueueDialogTests : FluentTestBase
     [Test]
     public async Task RendersDialogTitle()
     {
-        using var _ = new AssertionScope();
+        // Arrange & Act
         var cut = Render<CreateQueueDialog>(parameters => parameters
             .Add(p => p.IsOpen, true));
 
-        var title = cut.Find("h3");
-        title.TextContent.Should().Contain("Create New Queue");
+        // Assert
+        await cut.WaitForAssertionAsync(() =>
+        {
+            var title = cut.Find("h3");
+            title.TextContent.Should().Contain("Create New Queue");
+        });
     }
 
     [Test]
     public async Task ShowsQueueNameInput()
     {
-        using var _ = new AssertionScope();
+        // Arrange & Act
         var cut = Render<CreateQueueDialog>(parameters => parameters
             .Add(p => p.IsOpen, true));
 
-        var textFields = cut.FindAll("fluent-text-field");
-        textFields.Count.Should().BeGreaterThan(0);
+        // Assert
+        await cut.WaitForAssertionAsync(() =>
+        {
+            var textFields = cut.FindAll("fluent-text-field");
+            textFields.Count.Should().BeGreaterThan(0);
+        });
     }
 
     [Test]
     public async Task ShowsCreateButton()
     {
-        using var _ = new AssertionScope();
+        // Arrange & Act
         var cut = Render<CreateQueueDialog>(parameters => parameters
             .Add(p => p.IsOpen, true));
 
-        var buttons = cut.FindAll("fluent-button");
-        var createButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Create"));
-
-        createButton.Should().NotBeNull();
+        // Assert
+        await cut.WaitForAssertionAsync(() =>
+        {
+            var buttons = cut.FindAll("fluent-button");
+            var createButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Create"));
+            createButton.Should().NotBeNull();
+        });
     }
 
     [Test]
     public async Task ShowsCancelButton()
     {
-        using var _ = new AssertionScope();
+        // Arrange & Act
         var cut = Render<CreateQueueDialog>(parameters => parameters
             .Add(p => p.IsOpen, true));
 
-        var buttons = cut.FindAll("fluent-button");
-        var cancelButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Cancel"));
-
-        cancelButton.Should().NotBeNull();
+        // Assert
+        await cut.WaitForAssertionAsync(() =>
+        {
+            var buttons = cut.FindAll("fluent-button");
+            var cancelButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Cancel"));
+            cancelButton.Should().NotBeNull();
+        });
     }
 
     [Test]
     public async Task CallsQueueService_WhenFormSubmittedWithValidData()
     {
-        using var _ = new AssertionScope();
+        // Arrange
         A.CallTo(() => _fakeQueueService.CreateQueueAsync(A<string>._, A<CancellationToken>._))
             .Returns(Task.CompletedTask);
 
@@ -82,59 +95,68 @@ public class CreateQueueDialogTests : FluentTestBase
             .Add(p => p.IsOpen, true)
             .Add(p => p.OnQueueCreated, () => { onQueueCreatedCalled = true; return Task.CompletedTask; }));
 
+        // Act
         var input = cut.Find("fluent-text-field");
         await cut.InvokeAsync(() => input.Change("test-queue"));
 
         var form = cut.Find("form");
         await cut.InvokeAsync(() => form.Submit());
 
-        await Task.Delay(100); // Wait for async operation
-
-        A.CallTo(() => _fakeQueueService.CreateQueueAsync("test-queue", A<CancellationToken>._))
-            .MustHaveHappened();
+        // Assert
+        await cut.WaitForAssertionAsync(() =>
+        {
+            A.CallTo(() => _fakeQueueService.CreateQueueAsync("test-queue", A<CancellationToken>._))
+                .MustHaveHappened();
+        });
     }
 
     [Test]
     public async Task ShowsSuccessMessage_WhenQueueCreatedSuccessfully()
     {
-        using var _ = new AssertionScope();
+        // Arrange
         A.CallTo(() => _fakeQueueService.CreateQueueAsync(A<string>._, A<CancellationToken>._))
             .Returns(Task.CompletedTask);
 
         var cut = Render<CreateQueueDialog>(parameters => parameters
             .Add(p => p.IsOpen, true));
 
+        // Act
         var input = cut.Find("fluent-text-field");
         await cut.InvokeAsync(() => input.Change("test-queue"));
 
         var form = cut.Find("form");
         await cut.InvokeAsync(() => form.Submit());
 
-        await Task.Delay(100); // Wait for async operation
-
-        A.CallTo(() => _fakeMessageService.ShowMessageBar(A<Action<MessageOptions>>._))
-            .MustHaveHappened();
+        // Assert
+        await cut.WaitForAssertionAsync(() =>
+        {
+            A.CallTo(() => _fakeMessageService.ShowMessageBar(A<Action<MessageOptions>>._))
+                .MustHaveHappened();
+        });
     }
 
     [Test]
     public async Task ShowsErrorMessage_WhenQueueCreationFails()
     {
-        using var _ = new AssertionScope();
+        // Arrange
         A.CallTo(() => _fakeQueueService.CreateQueueAsync(A<string>._, A<CancellationToken>._))
             .Throws(new Exception("Database error"));
 
         var cut = Render<CreateQueueDialog>(parameters => parameters
             .Add(p => p.IsOpen, true));
 
+        // Act
         var input = cut.Find("fluent-text-field");
         await cut.InvokeAsync(() => input.Change("test-queue"));
 
         var form = cut.Find("form");
         await cut.InvokeAsync(() => form.Submit());
 
-        await Task.Delay(100); // Wait for async operation
-
-        A.CallTo(() => _fakeMessageService.ShowMessageBar(A<Action<MessageOptions>>._))
-            .MustHaveHappened();
+        // Assert
+        await cut.WaitForAssertionAsync(() =>
+        {
+            A.CallTo(() => _fakeMessageService.ShowMessageBar(A<Action<MessageOptions>>._))
+                .MustHaveHappened();
+        });
     }
 }

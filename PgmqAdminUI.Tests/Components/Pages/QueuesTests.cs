@@ -7,7 +7,6 @@ using PgmqAdminUI.Features.Queues;
 namespace PgmqAdminUI.Tests.Components.Pages;
 
 [Property("Category", "Component")]
-[Obsolete("This test class has async rendering timing issues with Fluent UI components. Tests fail because FluentDataGrid and FluentMessageBar elements are not found in time. Refactor to use bUnit's WaitForAssertion or WaitForElement mechanisms instead of Task.Delay.")]
 public class QueuesTests : FluentTestBase
 {
     private readonly QueueService _fakeQueueService;
@@ -26,32 +25,39 @@ public class QueuesTests : FluentTestBase
     [Test]
     public async Task RendersQueuesPageTitle()
     {
-        using var _ = new AssertionScope();
+        // Arrange & Act
         var cut = Render<Queues>();
 
-        var title = cut.Find("h2");
-        title.TextContent.Should().Be("Queues");
+        // Assert
+        await cut.WaitForAssertionAsync(() =>
+        {
+            var title = cut.Find("h2");
+            title.TextContent.Should().Be("Queues");
+        });
     }
 
     [Test]
     public async Task ShowsLoadingIndicator_WhenLoadingQueues()
     {
-        using var _ = new AssertionScope();
+        // Arrange
         var tcs = new TaskCompletionSource<IEnumerable<QueueDto>>();
         A.CallTo(() => _fakeQueueService.ListQueuesAsync(A<CancellationToken>._))
             .Returns(tcs.Task);
 
+        // Act
         var cut = Render<Queues>();
 
+        // Assert - should show loading indicator while waiting
         cut.FindAll("fluent-progress-ring").Count.Should().BeGreaterThan(0);
 
+        // Cleanup - complete the task
         tcs.SetResult([]);
     }
 
     [Test]
     public async Task DisplaysQueueList_WhenQueuesExist()
     {
-        using var _ = new AssertionScope();
+        // Arrange
         var queues = new List<QueueDto>
         {
             new() { Name = "test-queue-1", TotalMessages = 10, InFlightMessages = 2, ArchivedMessages = 5 },
@@ -61,56 +67,75 @@ public class QueuesTests : FluentTestBase
         A.CallTo(() => _fakeQueueService.ListQueuesAsync(A<CancellationToken>._))
             .Returns(Task.FromResult(queues.AsEnumerable()));
 
+        // Act
         var cut = Render<Queues>();
 
-        await Task.Delay(100); // Wait for async initialization
+        // Assert - wait for component to finish loading by checking for grid
+        // FluentDataGrid renders as a table element
+        await cut.WaitForStateAsync(
+            () => cut.Markup.Contains("table") || cut.Markup.Contains("role=\"grid\""),
+            TimeSpan.FromSeconds(3));
 
-        cut.FindAll("fluent-data-grid").Count.Should().Be(1);
+        // Verify the grid is rendered (table or div with grid role)
+        var markup = cut.Markup;
+        (markup.Contains("table") || markup.Contains("role=\"grid\"")).Should().BeTrue(
+            $"Expected a table or grid element. Markup: {markup}");
     }
 
     [Test]
     public async Task ShowsInfoMessage_WhenNoQueuesExist()
     {
-        using var _ = new AssertionScope();
+        // Arrange
         A.CallTo(() => _fakeQueueService.ListQueuesAsync(A<CancellationToken>._))
             .Returns(Task.FromResult(Enumerable.Empty<QueueDto>()));
 
+        // Act
         var cut = Render<Queues>();
 
-        await Task.Delay(100); // Wait for async initialization
+        // Assert - wait for component to finish loading
+        await cut.WaitForStateAsync(
+            () => !cut.Markup.Contains("fluent-progress-ring"),
+            TimeSpan.FromSeconds(3));
 
-        var messageBar = cut.Find("fluent-message-bar");
-        messageBar.Should().NotBeNull();
+        // FluentMessageBar renders with class "fluent-messagebar" not as <fluent-message-bar> custom element
+        cut.Markup.Should().Contain("fluent-messagebar");
     }
 
     [Test]
     public async Task ShowsCreateButton()
     {
-        using var _ = new AssertionScope();
+        // Arrange
         A.CallTo(() => _fakeQueueService.ListQueuesAsync(A<CancellationToken>._))
             .Returns(Task.FromResult(Enumerable.Empty<QueueDto>()));
 
+        // Act
         var cut = Render<Queues>();
 
-        var buttons = cut.FindAll("fluent-button");
-        var createButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Create Queue"));
-
-        createButton.Should().NotBeNull();
+        // Assert
+        await cut.WaitForAssertionAsync(() =>
+        {
+            var buttons = cut.FindAll("fluent-button");
+            var createButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Create Queue"));
+            createButton.Should().NotBeNull();
+        });
     }
 
     [Test]
     public async Task ShowsErrorMessage_WhenLoadQueuesFails()
     {
-        using var _ = new AssertionScope();
+        // Arrange
         A.CallTo(() => _fakeQueueService.ListQueuesAsync(A<CancellationToken>._))
             .Throws(new Exception("Database connection failed"));
 
+        // Act
         var cut = Render<Queues>();
 
-        await Task.Delay(100); // Wait for async initialization
-
-        A.CallTo(() => _fakeMessageService.ShowMessageBar(A<Action<MessageOptions>>._))
-            .MustHaveHappened();
+        // Assert - verify error notification was shown
+        await cut.WaitForAssertionAsync(() =>
+        {
+            A.CallTo(() => _fakeMessageService.ShowMessageBar(A<Action<MessageOptions>>._))
+                .MustHaveHappened();
+        });
     }
 
     private class FakeNavigationManager : NavigationManager

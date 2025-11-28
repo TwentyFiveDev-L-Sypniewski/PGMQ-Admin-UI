@@ -10,7 +10,6 @@ using MessageService = PgmqAdminUI.Features.Messages.MessageService;
 namespace PgmqAdminUI.Tests.Components.Pages;
 
 [Property("Category", "Component")]
-[Obsolete("This test class has async rendering timing issues with Fluent UI components. Refactor to use bUnit's proper async waiting mechanisms instead of Task.Delay.")]
 public class QueueDetailTests : FluentTestBase
 {
     private readonly FakeNavigationManager _fakeNavigationManager;
@@ -34,63 +33,82 @@ public class QueueDetailTests : FluentTestBase
     [Test]
     public async Task RendersQueueDetailPageTitle()
     {
-        using var _ = new AssertionScope();
+        // Arrange & Act
         var cut = Render<QueueDetail>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        var title = cut.Find("h2");
-        title.TextContent.Should().Contain("test-queue");
+        // Assert
+        await cut.WaitForAssertionAsync(() =>
+        {
+            var title = cut.Find("h2");
+            title.TextContent.Should().Contain("test-queue");
+        });
     }
 
     [Test]
     public async Task DisplaysThreeTabs()
     {
-        using var _ = new AssertionScope();
+        // Arrange & Act
         var cut = Render<QueueDetail>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        var tabs = cut.FindAll("fluent-tab");
-        tabs.Count.Should().Be(3);
+        // Assert
+        await cut.WaitForAssertionAsync(() =>
+        {
+            var tabs = cut.FindAll("fluent-tab");
+            tabs.Count.Should().Be(3);
+        });
     }
 
     [Test]
     public async Task ShowsSendMessageButton()
     {
-        using var _ = new AssertionScope();
+        // Arrange & Act
         var cut = Render<QueueDetail>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        var buttons = cut.FindAll("fluent-button");
-        var sendButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Send Message"));
-
-        sendButton.Should().NotBeNull();
+        // Assert
+        await cut.WaitForAssertionAsync(() =>
+        {
+            var buttons = cut.FindAll("fluent-button");
+            var sendButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Send Message"));
+            sendButton.Should().NotBeNull();
+        });
     }
 
     [Test]
     public async Task ShowsBackToQueuesButton()
     {
-        using var _ = new AssertionScope();
+        // Arrange & Act
         var cut = Render<QueueDetail>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        var buttons = cut.FindAll("fluent-button");
-        var backButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Back to Queues"));
-
-        backButton.Should().NotBeNull();
+        // Assert
+        await cut.WaitForAssertionAsync(() =>
+        {
+            var buttons = cut.FindAll("fluent-button");
+            var backButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Back to Queues"));
+            backButton.Should().NotBeNull();
+        });
     }
 
     [Test]
     public async Task NavigatesBack_WhenBackButtonClicked()
     {
-        using var _ = new AssertionScope();
+        // Arrange
         var cut = Render<QueueDetail>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        var buttons = cut.FindAll("fluent-button");
-        var backButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Back to Queues"));
+        // Act - wait for button to appear and click it
+        await cut.WaitForAssertionAsync(() =>
+        {
+            var buttons = cut.FindAll("fluent-button");
+            var backButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Back to Queues"));
+            backButton.Should().NotBeNull();
+            backButton?.Click();
+        });
 
-        backButton?.Click();
-
+        // Assert
         _fakeNavigationManager.Uri.Should().Contain("/queues");
     }
 
