@@ -47,11 +47,11 @@ await using (var scope = app.Services.CreateAsyncScope())
         await using var command = new NpgsqlCommand("CREATE EXTENSION IF NOT EXISTS pgmq CASCADE;", connection);
         await command.ExecuteNonQueryAsync();
 
-        logger.LogInformation("PGMQ extension initialized successfully");
+        Log.PgmqExtensionInitialized(logger);
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "Failed to initialize PGMQ extension");
+        Log.PgmqExtensionInitializationFailed(logger, ex);
         throw;
     }
 }
@@ -76,3 +76,12 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
+internal static partial class Log
+{
+    [LoggerMessage(Level = LogLevel.Information, Message = "PGMQ extension initialized successfully")]
+    public static partial void PgmqExtensionInitialized(ILogger logger);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to initialize PGMQ extension")]
+    public static partial void PgmqExtensionInitializationFailed(ILogger logger, Exception exception);
+}
