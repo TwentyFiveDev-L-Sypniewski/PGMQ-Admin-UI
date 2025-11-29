@@ -20,17 +20,17 @@ dotnet husky install
 The pre-commit hook runs these quality gates in sequence:
 
 1. **Build** - `dotnet build --no-restore`
-2. **Test** - `dotnet test --no-build --no-restore`
-3. **Format** - `dotnet format --no-restore --include ${staged}` (staged files only)
+2. **Format** - `dotnet format --no-restore --include ${staged}` (staged files only)
 
-All three must pass before the commit is finalized. Formatting changes are automatically staged.
+Both must pass before the commit is finalized. Formatting changes are automatically staged.
+
+**Note**: Tests are run separately via `dotnet test` to allow developers to optimize commit time. Run tests manually before pushing to ensure code quality.
 
 ## Task Configuration
 
 Tasks are defined in `task-runner.json` with the following structure:
 
 - **build**: Compiles the project to catch compilation errors
-- **test**: Runs all unit, integration, and component tests
 - **format**: Formats only staged C# files, project files, and props files
 
 See the [Husky.NET Task Runner documentation](https://alirezanet.github.io/Husky.Net/guide/task-runner.html) for advanced configuration options.
@@ -47,8 +47,13 @@ Test individual tasks:
 
 ```bash
 dotnet husky run --name build
-dotnet husky run --name test
 dotnet husky run --name format
+```
+
+Run tests manually:
+
+```bash
+dotnet test
 ```
 
 ## Modifying Hooks
@@ -68,9 +73,13 @@ To modify task configuration, edit `task-runner.json`.
 - Ensure `dotnet husky install` has been executed
 - Verify git config: `git config core.hooksPath` should output `.husky`
 
-**Build/test failures:**
-- Run quality gates manually: `dotnet build && dotnet test && dotnet format`
+**Build/format failures:**
+- Run quality gates manually: `dotnet build && dotnet format`
 - Fix reported issues before committing
+
+**Test failures:**
+- Run tests separately: `dotnet test`
+- Fix test failures before pushing to remote
 
 **Format changes not staged:**
 - The hook automatically runs `git add -u` after formatting
