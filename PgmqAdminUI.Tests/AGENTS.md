@@ -10,15 +10,18 @@
 
 - Organize by **feature first**, not by test category
 - NO separate `/Unit/`, `/Integration/`, `/Component/` root folders
-- Filter via `dotnet test --filter "Category=Integration"`
+- Filter via `dotnet test -- --treenode-filter "/*/*/*/*[Category=Integration]"`
 - **Categories**: `Unit`, `Integration`, `Component`
+
+**Note:** TUnit uses `--treenode-filter` ([docs](https://tunit.dev/docs/execution/test-filters/)). The `--` separates dotnet test args from TUnit args. Pattern follows the test tree hierarchy: `/Assembly/Namespace/Class/Test` — use `*` wildcards to match any segment (e.g., `/*/*/*/*[Category=Unit]` matches all tests with Category=Unit).
 
 ## Running Tests
 
 ```bash
-dotnet test                                      # All tests
-# Filtered (Unit, Integration, Component)
-dotnet test StockStorage/tests/StockStorageTests/ --filter "TestCategory=Unit"
+dotnet test                                                        # All tests
+dotnet test -- --treenode-filter "/*/*/*/*[Category=Component]"    # Component tests only
+dotnet test -- --treenode-filter "/*/*/ClassName/*"                # All tests in a class
+dotnet test -- --treenode-filter "/*/Namespace/Class/TestMethod"   # Single specific test
 ```
 
 ## Testing Layers
@@ -72,6 +75,17 @@ dotnet test StockStorage/tests/StockStorageTests/ --filter "TestCategory=Unit"
 8. **Assertions**: Use AwesomeAssertions with `AssertionScope`
 9. **Sociable Tests**: Exercise real collaborators; avoid over-mocking
 10. **No Redundancy**: Don't duplicate integration coverage with unit tests
+
+## Bug-Fix Testing Pattern
+
+When fixing a bug, write tests FIRST that assert the expected (correct) behavior:
+
+1. **Write production-grade tests**: Assert what the code SHOULD do, not "reproduce the bug"
+2. **Tests fail initially**: Confirms the bug exists
+3. **Implement the fix**: Tests now pass
+4. **No "bug" comments**: Tests should read like normal feature tests — no "REPRODUCES THE ISSUE" or "CURRENT BUG" language
+
+Example: If clicking a button triggers wrong action, write a test asserting the correct action. Test fails → confirms bug. Fix code → test passes.
 
 ## Reference
 

@@ -27,7 +27,8 @@
         <isInPipeline Condition="'$(GITHUB_ACTIONS)' == 'true' or '$(ACT)' != ''">true</isInPipeline>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(isInPipeline)' == 'true'">
+    <!-- Treat warnings as errors (can be overridden with /p:TreatWarningsAsErrors=false if needed) -->
+    <PropertyGroup>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
     </PropertyGroup>

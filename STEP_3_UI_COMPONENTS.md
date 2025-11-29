@@ -1827,25 +1827,27 @@ public class RealTimeUpdatesFlowTests : PageTest
 **Run all E2E tests:**
 
 ```bash
-dotnet test --filter "Category=E2E"
+dotnet test -- --treenode-filter "/*/*/*/*[Category=E2E]"
 ```
 
 **Run specific test file:**
 
 ```bash
-dotnet test --filter "FullyQualifiedName~QueueManagementFlowTests"
+dotnet test -- --treenode-filter "/*/*/QueueManagementFlowTests/*"
 ```
+
+**Note:** TUnit uses `--treenode-filter` ([docs](https://tunit.dev/docs/execution/test-filters/)). The `--` separates dotnet test args from TUnit args. Pattern: `/Assembly/Namespace/Class/Test` with `*` wildcards.
 
 **Run with headed browser (visible UI):**
 
 ```bash
-HEADED=1 dotnet test --filter "Category=E2E"
+HEADED=1 dotnet test -- --treenode-filter "/*/*/*/*[Category=E2E]"
 ```
 
 **Run with specific browser:**
 
 ```bash
-BROWSER=firefox dotnet test --filter "Category=E2E"
+BROWSER=firefox dotnet test -- --treenode-filter "/*/*/*/*[Category=E2E]"
 ```
 
 ### Best Practices
@@ -1874,7 +1876,7 @@ Playwright tests should run after:
   run: |
     dotnet run --project PgmqAdminUI.AppHost &
     sleep 10  # Wait for app to start
-    dotnet test --filter "Category=E2E" --logger "trunit"
+    dotnet test -- --treenode-filter "/*/*/*/*[Category=E2E]" --logger "trunit"
 ```
 
 ---
@@ -1957,7 +1959,7 @@ Playwright tests should run after:
 - [ ] Write `QueueManagementFlowTests.cs` - Full queue CRUD workflow
 - [ ] Write `MessageOperationsFlowTests.cs` - Send/view/archive/delete flow
 - [ ] Write `RealTimeUpdatesFlowTests.cs` - Verify metrics auto-refresh
-- [ ] Run `dotnet test --filter "Category=E2E"` to verify E2E tests pass
+- [ ] Run `dotnet test -- --treenode-filter "/*/*/*/*[Category=E2E]"` to verify E2E tests pass
 
 ### Phase 8: Quality Gates
 

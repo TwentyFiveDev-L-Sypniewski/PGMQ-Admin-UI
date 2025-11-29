@@ -62,6 +62,10 @@
     <!-- Security fix for CVE-2025-55247 (transitive from EF Core Design) -->
     <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.0.2" />
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.0.2" />
+    <!-- Security fix for GHSA-rxg9-xrhp-64gj (transitive from Respawn via Microsoft.Data.SqlClient)
+         - System.Drawing.Common 5.0.0 has a critical vulnerability
+         We use PostgreSQL, not SQL Server, but Respawn includes Microsoft.Data.SqlClient -->
+    <PackageVersion Include="System.Drawing.Common" Version="9.0.0" />
     <!-- Swagger -->
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.0.1" />
     <!--  PGMQ -->

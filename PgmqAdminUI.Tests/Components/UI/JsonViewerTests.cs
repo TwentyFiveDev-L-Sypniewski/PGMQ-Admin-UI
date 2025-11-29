@@ -10,11 +10,11 @@ public class JsonViewerTests : FluentTestBase
     public async Task RendersJsonContent()
     {
         // Arrange
-        const string jsonContent = "{\"test\": \"data\"}";
+        const string JsonContent = "{\"test\": \"data\"}";
 
         // Act
         var cut = Render<JsonViewer>(parameters => parameters
-            .Add(p => p.Content, jsonContent));
+            .Add(p => p.Content, JsonContent));
 
         // Assert
         await cut.WaitForAssertionAsync(() =>
@@ -65,11 +65,11 @@ public class JsonViewerTests : FluentTestBase
     public async Task DoesNotShowExpandButton_WhenContentNotTruncated()
     {
         // Arrange
-        const string shortJson = "{\"test\": \"data\"}";
+        const string ShortJson = "{\"test\": \"data\"}";
 
         // Act
         var cut = Render<JsonViewer>(parameters => parameters
-            .Add(p => p.Content, shortJson)
+            .Add(p => p.Content, ShortJson)
             .Add(p => p.MaxLength, 100));
 
         // Assert
@@ -85,10 +85,10 @@ public class JsonViewerTests : FluentTestBase
     public async Task ShowsPrettyPrintedJson_WhenExpanded()
     {
         // Arrange
-        const string jsonContent = "{\"test\":\"data\",\"nested\":{\"value\":123}}";
+        const string JsonContent = "{\"test\":\"data\",\"nested\":{\"value\":123}}";
 
         var cut = Render<JsonViewer>(parameters => parameters
-            .Add(p => p.Content, jsonContent)
+            .Add(p => p.Content, JsonContent)
             .Add(p => p.MaxLength, 10));
 
         // Act
@@ -108,10 +108,10 @@ public class JsonViewerTests : FluentTestBase
     public async Task ShowsCollapseButton_WhenExpanded()
     {
         // Arrange
-        const string jsonContent = "{\"test\":\"data\"}";
+        const string JsonContent = "{\"test\":\"data\"}";
 
         var cut = Render<JsonViewer>(parameters => parameters
-            .Add(p => p.Content, jsonContent)
+            .Add(p => p.Content, JsonContent)
             .Add(p => p.MaxLength, 5));
 
         // Act
@@ -132,10 +132,10 @@ public class JsonViewerTests : FluentTestBase
     public async Task TogglesExpansion_WhenButtonClicked()
     {
         // Arrange
-        const string jsonContent = "{\"test\":\"data\"}";
+        const string JsonContent = "{\"test\":\"data\"}";
 
         var cut = Render<JsonViewer>(parameters => parameters
-            .Add(p => p.Content, jsonContent)
+            .Add(p => p.Content, JsonContent)
             .Add(p => p.MaxLength, 5));
 
         // Initially collapsed - verify expand button exists
@@ -177,11 +177,11 @@ public class JsonViewerTests : FluentTestBase
     public async Task HandlesInvalidJson_Gracefully()
     {
         // Arrange
-        const string invalidJson = "not valid json at all";
+        const string InvalidJson = "not valid json at all";
 
         // Act
         var cut = Render<JsonViewer>(parameters => parameters
-            .Add(p => p.Content, invalidJson));
+            .Add(p => p.Content, InvalidJson));
 
         // Assert - Should still render without throwing
         await cut.WaitForAssertionAsync(() =>
@@ -211,17 +211,17 @@ public class JsonViewerTests : FluentTestBase
     public async Task ShowsFullContent_WhenShorterThanMaxLength()
     {
         // Arrange
-        const string jsonContent = "{\"short\": \"content\"}";
+        const string JsonContent = "{\"short\": \"content\"}";
 
         // Act
         var cut = Render<JsonViewer>(parameters => parameters
-            .Add(p => p.Content, jsonContent)
+            .Add(p => p.Content, JsonContent)
             .Add(p => p.MaxLength, 100));
 
         // Assert
         await cut.WaitForAssertionAsync(() =>
         {
-            cut.Markup.Should().Contain(jsonContent);
+            cut.Markup.Should().Contain(JsonContent);
         });
     }
 }

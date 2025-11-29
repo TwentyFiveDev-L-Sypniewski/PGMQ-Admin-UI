@@ -89,11 +89,9 @@ public class CreateQueueDialogTests : FluentTestBase
         A.CallTo(() => _fakeQueueService.CreateQueueAsync(A<string>._, A<CancellationToken>._))
             .Returns(Task.CompletedTask);
 
-        var onQueueCreatedCalled = false;
-
         var cut = Render<CreateQueueDialog>(parameters => parameters
             .Add(p => p.IsOpen, true)
-            .Add(p => p.OnQueueCreated, () => { onQueueCreatedCalled = true; return Task.CompletedTask; }));
+            .Add(p => p.OnQueueCreated, () => Task.CompletedTask));
 
         // Act
         var input = cut.Find("fluent-text-field");

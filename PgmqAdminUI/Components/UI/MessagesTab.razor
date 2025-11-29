@@ -1,5 +1,6 @@
 @using PgmqAdminUI.Features.Messages
 @using Microsoft.FluentUI.AspNetCore.Components
+@using Icons = Microsoft.FluentUI.AspNetCore.Components.Icons
 @inject QueueService QueueService
 @inject Features.Messages.MessageService MessageService
 @inject IMessageService NotificationService
@@ -34,11 +35,13 @@
             <PropertyColumn Property="@(m => m.EnqueuedAt)" Title="Created" Format="yyyy-MM-dd HH:mm:ss" Sortable="true" />
             <PropertyColumn Property="@(m => m.ReadCount)" Title="Read Count" Sortable="true" Align="Align.End" />
             <TemplateColumn Title="Actions">
-                <FluentButton Appearance="Appearance.Lightweight" OnClick="() => DeleteMessage(context.MsgId)">
-                    Delete
+                <FluentButton Appearance="Appearance.Lightweight" OnClick="() => DeleteMessage(context.MsgId)"
+                              Title="Delete message">
+                    <FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
                 </FluentButton>
-                <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ArchiveMessage(context.MsgId)">
-                    Archive
+                <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ArchiveMessage(context.MsgId)"
+                              Title="Archive message">
+                    <FluentIcon Value="@(new Icons.Regular.Size16.Archive())" />
                 </FluentButton>
             </TemplateColumn>
         </FluentDataGrid>
