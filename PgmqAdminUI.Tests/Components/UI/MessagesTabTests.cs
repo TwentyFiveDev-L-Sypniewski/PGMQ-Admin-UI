@@ -188,7 +188,7 @@ public class MessagesTabTests : FluentTestBase
     }
 
     [Test]
-    public async Task CallsDeleteMessage_WhenDeleteButtonClicked()
+    public async Task DeleteButton_ClickingDelete_ShouldCallDeleteService()
     {
         // Arrange
         var messages = new List<MessageDto>
@@ -220,25 +220,22 @@ public class MessagesTabTests : FluentTestBase
         var cut = Render<MessagesTab>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        // Wait for component to load and find delete button
-        await cut.WaitForAssertionAsync(() =>
-        {
-            var buttons = cut.FindAll("fluent-button");
-            var deleteButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Delete"));
-            deleteButton.Should().NotBeNull();
-            deleteButton?.Click();
-        });
+        // Wait for component to load
+        await cut.WaitForStateAsync(
+            () => !cut.Markup.Contains("fluent-progress-ring"),
+            TimeSpan.FromSeconds(3));
+
+        // Click the delete button (identified by title attribute)
+        var deleteButton = cut.Find("fluent-button[title='Delete message']");
+        deleteButton.Click();
 
         // Assert - verify delete was called
-        await cut.WaitForAssertionAsync(() =>
-        {
-            A.CallTo(() => _fakeMessageService.DeleteMessageAsync("test-queue", 1, A<CancellationToken>._))
-                .MustHaveHappened();
-        });
+        A.CallTo(() => _fakeMessageService.DeleteMessageAsync("test-queue", 1, A<CancellationToken>._))
+            .MustHaveHappened();
     }
 
     [Test]
-    public async Task CallsArchiveMessage_WhenArchiveButtonClicked()
+    public async Task ArchiveButton_ClickingArchive_ShouldCallArchiveService()
     {
         // Arrange
         var messages = new List<MessageDto>
@@ -270,21 +267,18 @@ public class MessagesTabTests : FluentTestBase
         var cut = Render<MessagesTab>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
 
-        // Wait for component to load and find archive button
-        await cut.WaitForAssertionAsync(() =>
-        {
-            var buttons = cut.FindAll("fluent-button");
-            var archiveButton = buttons.FirstOrDefault(b => b.TextContent.Contains("Archive"));
-            archiveButton.Should().NotBeNull();
-            archiveButton?.Click();
-        });
+        // Wait for component to load
+        await cut.WaitForStateAsync(
+            () => !cut.Markup.Contains("fluent-progress-ring"),
+            TimeSpan.FromSeconds(3));
+
+        // Click the archive button (identified by title attribute)
+        var archiveButton = cut.Find("fluent-button[title='Archive message']");
+        archiveButton.Click();
 
         // Assert - verify archive was called
-        await cut.WaitForAssertionAsync(() =>
-        {
-            A.CallTo(() => _fakeMessageService.ArchiveMessageAsync("test-queue", 1, A<CancellationToken>._))
-                .MustHaveHappened();
-        });
+        A.CallTo(() => _fakeMessageService.ArchiveMessageAsync("test-queue", 1, A<CancellationToken>._))
+            .MustHaveHappened();
     }
 
     [Test]

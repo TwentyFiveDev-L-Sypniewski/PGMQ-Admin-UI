@@ -303,3 +303,7 @@ FodyWeavers.xsd
 # Claude Code plugins (dynamically installed by SessionStart hook)
 .claude/agents/
 .claude/commands/
+
+
+# MCPs
+.playwright-mcp

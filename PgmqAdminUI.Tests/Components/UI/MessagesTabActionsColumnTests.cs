@@ -26,7 +26,7 @@ public class MessagesTabActionsColumnTests : FluentTestBase
     }
 
     [Test]
-    public async Task ActionsColumn_ShouldRenderMenuButton()
+    public async Task ActionsColumn_ShouldRenderDeleteAndArchiveButtons()
     {
         // Arrange
         var messages = new List<MessageDto>
@@ -56,18 +56,18 @@ public class MessagesTabActionsColumnTests : FluentTestBase
             () => !cut.Markup.Contains("fluent-progress-ring"),
             TimeSpan.FromSeconds(3));
 
-        // Assert
-        var menuButtons = cut.FindAll("fluent-menu-button");
-        menuButtons.Count.Should().BeGreaterThanOrEqualTo(1,
-            "Actions column should use FluentMenuButton for row actions");
+        // Assert - Should have Delete and Archive buttons with title attributes
+        var deleteButtons = cut.FindAll("fluent-button[title='Delete message']");
+        var archiveButtons = cut.FindAll("fluent-button[title='Archive message']");
 
-        var markup = cut.Markup;
-        markup.Should().Contain("fluent-menu-item",
-            "FluentMenuButton should contain FluentMenuItem elements for Delete and Archive actions");
+        deleteButtons.Count.Should().BeGreaterThanOrEqualTo(1,
+            "Actions column should have a Delete button");
+        archiveButtons.Count.Should().BeGreaterThanOrEqualTo(1,
+            "Actions column should have an Archive button");
     }
 
     [Test]
-    public async Task ActionsColumn_ClickingMenuButton_ShouldNotTriggerDelete()
+    public async Task ActionsColumn_ClickingDeleteButton_ShouldCallDeleteService()
     {
         // Arrange
         var messages = new List<MessageDto>
@@ -89,6 +89,12 @@ public class MessagesTabActionsColumnTests : FluentTestBase
                 CurrentPage = 1
             }));
 
+        A.CallTo(() => _fakeMessageService.DeleteMessageAsync(
+            A<string>._,
+            A<long>._,
+            A<CancellationToken>._))
+            .Returns(Task.FromResult(true));
+
         // Act
         var cut = Render<MessagesTab>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
@@ -97,24 +103,21 @@ public class MessagesTabActionsColumnTests : FluentTestBase
             () => !cut.Markup.Contains("fluent-progress-ring"),
             TimeSpan.FromSeconds(3));
 
-        var menuButtons = cut.FindAll("fluent-menu-button");
-        menuButtons.Should().NotBeEmpty("Actions column should have a menu button");
-
-        // Click the menu button - should only open menu, not trigger delete
-        menuButtons.First().Click();
+        var deleteButton = cut.Find("fluent-button[title='Delete message']");
+        deleteButton.Click();
 
         // Assert
-        A.CallTo(() => _fakeMessageService.DeleteMessageAsync(A<string>._, A<long>._, A<CancellationToken>._))
-            .MustNotHaveHappened();
+        A.CallTo(() => _fakeMessageService.DeleteMessageAsync("test-queue", 42, A<CancellationToken>._))
+            .MustHaveHappened();
     }
 
     [Test]
-    public async Task ActionsColumn_MenuShouldContainDeleteAndArchiveItems()
+    public async Task ActionsColumn_ClickingArchiveButton_ShouldCallArchiveService()
     {
         // Arrange
         var messages = new List<MessageDto>
         {
-            new() { MsgId = 1, Message = "{\"test\": \"data\"}", EnqueuedAt = DateTimeOffset.UtcNow, ReadCount = 0 }
+            new() { MsgId = 42, Message = "{\"test\": \"data\"}", EnqueuedAt = DateTimeOffset.UtcNow, ReadCount = 0 }
         };
 
         A.CallTo(() => _fakeQueueService.GetQueueDetailAsync(
@@ -131,6 +134,12 @@ public class MessagesTabActionsColumnTests : FluentTestBase
                 CurrentPage = 1
             }));
 
+        A.CallTo(() => _fakeMessageService.ArchiveMessageAsync(
+            A<string>._,
+            A<long>._,
+            A<CancellationToken>._))
+            .Returns(Task.FromResult(true));
+
         // Act
         var cut = Render<MessagesTab>(parameters => parameters
             .Add(p => p.QueueName, "test-queue"));
@@ -139,14 +148,16 @@ public class MessagesTabActionsColumnTests : FluentTestBase
             () => !cut.Markup.Contains("fluent-progress-ring"),
             TimeSpan.FromSeconds(3));
 
+        var archiveButton = cut.Find("fluent-button[title='Archive message']");
+        archiveButton.Click();
+
         // Assert
-        var markup = cut.Markup;
-        markup.Should().Contain("Delete", "Menu should contain Delete option");
-        markup.Should().Contain("Archive", "Menu should contain Archive option");
+        A.CallTo(() => _fakeMessageService.ArchiveMessageAsync("test-queue", 42, A<CancellationToken>._))
+            .MustHaveHappened();
     }
 
     [Test]
-    public async Task ActionsColumn_WithMultipleMessages_EachRowShouldHaveMenuButton()
+    public async Task ActionsColumn_WithMultipleMessages_EachRowShouldHaveActionButtons()
     {
         // Arrange
         var messages = new List<MessageDto>
@@ -178,8 +189,11 @@ public class MessagesTabActionsColumnTests : FluentTestBase
             () => !cut.Markup.Contains("fluent-progress-ring"),
             TimeSpan.FromSeconds(3));
 
-        // Assert - each message row should have its own menu button
-        var menuButtons = cut.FindAll("fluent-menu-button");
-        menuButtons.Count.Should().BeGreaterThanOrEqualTo(3, "Each message row should have a menu button");
+        // Assert - each message row should have its own Delete and Archive buttons
+        var deleteButtons = cut.FindAll("fluent-button[title='Delete message']");
+        var archiveButtons = cut.FindAll("fluent-button[title='Archive message']");
+
+        deleteButtons.Count.Should().Be(3, "Each message row should have a Delete button");
+        archiveButtons.Count.Should().Be(3, "Each message row should have an Archive button");
     }
 }

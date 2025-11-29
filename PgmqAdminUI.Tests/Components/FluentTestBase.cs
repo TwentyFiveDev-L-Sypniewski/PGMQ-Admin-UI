@@ -10,6 +10,8 @@ namespace PgmqAdminUI.Tests.Components;
 /// </summary>
 public abstract class FluentTestBase : BunitContext, IAsyncDisposable
 {
+    private bool _menuProviderRendered;
+
     protected FluentTestBase()
     {
         // Register Fluent UI services required for component rendering
@@ -17,6 +19,19 @@ public abstract class FluentTestBase : BunitContext, IAsyncDisposable
 
         // Configure JSInterop to handle Fluent UI JavaScript calls
         JSInterop.Mode = JSRuntimeMode.Loose;
+    }
+
+    /// <summary>
+    /// Ensures FluentMenuProvider is rendered (required for FluentMenuButton support).
+    /// Call this after registering all services in the derived test class constructor.
+    /// </summary>
+    protected void EnsureMenuProviderRendered()
+    {
+        if (!_menuProviderRendered)
+        {
+            Render<FluentMenuProvider>();
+            _menuProviderRendered = true;
+        }
     }
 
     public new async ValueTask DisposeAsync()

@@ -2,11 +2,26 @@
    "$schema": "https://alirezanet.github.io/Husky.Net/schema.json",
    "tasks": [
       {
-         "name": "format-code",
+         "name": "build",
+         "group": "pre-commit",
+         "command": "dotnet",
+         "args": [ "build", "--no-restore" ],
+         "output": "always"
+      },
+      {
+         "name": "test",
+         "group": "pre-commit",
+         "command": "dotnet",
+         "args": [ "test", "--no-build", "--no-restore" ],
+         "output": "always"
+      },
+      {
+         "name": "format",
          "group": "pre-commit",
          "command": "dotnet",
          "args": [ "format", "--no-restore", "--include", "${staged}" ],
-         "include": [ "**/*.cs" ]
+         "include": [ "**/*.cs", "**/*.csproj", "**/*.props" ],
+         "output": "always"
       }
    ]
 }

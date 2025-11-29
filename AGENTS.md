@@ -37,6 +37,8 @@ docker build -t pgmq-admin-ui ./PgmqAdminUI     # Production build
 
 Before finishing task: `dotnet build` → `dotnet test` → `dotnet format` → Update `AGENTS.md` if patterns changed.
 
+**Automated via Husky.Net**: Pre-commit hooks automatically run build, test, and format before each commit. See `.husky/README.md` for details.
+
 ## Coding Standards
 
 ### Core Principles
@@ -97,8 +99,24 @@ See [PgmqAdminUI.Tests/AGENTS.md](PgmqAdminUI.Tests/AGENTS.md) for test commands
 - **New operation**: Update service in `Features/`, add unit + integration tests.
 - **New component**: Create in feature folder, add bUnit test. `Components/UI/` only for shared.
 
+## Git Hooks
+
+**Husky.Net** manages pre-commit hooks to enforce quality gates automatically.
+
+**Setup** (required after cloning):
+```bash
+dotnet husky install
+```
+
+**Pre-commit checks**:
+1. Build validation
+2. All tests pass
+3. Code formatting (staged files only)
+
+Configuration: `.husky/task-runner.json` | Documentation: `.husky/README.md`
+
 ## Rules
 
-- Run `dotnet test` before committing.
-- Update `AGENTS.md` if patterns change.
-- No temp docs (`IMPLEMENTATION.md`, `TASKS.md`). Use `AGENTS.md` and `IMPLEMENTATION_PLAN.md` only.
+- Quality gates run automatically via pre-commit hooks (Husky.Net)
+- Update `AGENTS.md` if patterns change
+- No temp docs (`IMPLEMENTATION.md`, `TASKS.md`). Use `AGENTS.md` and `IMPLEMENTATION_PLAN.md` only
