@@ -123,11 +123,13 @@ See `PgmqAdminUI.Tests/AGENTS.md` for detailed testing guidance.
 **Quick Commands:**
 
 ```bash
-dotnet test                                      # Run all tests
-dotnet test --filter "Category=Unit"            # Unit tests only
-dotnet test --filter "Category=Integration"     # Integration tests only
-dotnet test --filter "Category=Component"       # Component tests only
+dotnet test                                              # Run all tests
+dotnet test -- --treenode-filter "/*/*/*/*[Category=Unit]"         # Unit tests only
+dotnet test -- --treenode-filter "/*/*/*/*[Category=Integration]"  # Integration tests only
+dotnet test -- --treenode-filter "/*/*/*/*[Category=Component]"    # Component tests only
 ```
+
+**Note:** TUnit uses `--treenode-filter` ([docs](https://tunit.dev/docs/execution/test-filters/)). The `--` separates dotnet test args from TUnit args. Pattern follows the test tree hierarchy: `/Assembly/Namespace/Class/Test` — use `*` wildcards to match any segment (e.g., `/*/*/*/*[Category=Unit]` matches all tests with Category=Unit across all assemblies, namespaces, and classes).
 
 ### Bug-Fix Testing Pattern
 

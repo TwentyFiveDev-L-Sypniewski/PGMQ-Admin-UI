@@ -10,15 +10,18 @@
 
 - Organize by **feature first**, not by test category
 - NO separate `/Unit/`, `/Integration/`, `/Component/` root folders
-- Filter via `dotnet test --filter "Category=Integration"`
+- Filter via `dotnet test -- --treenode-filter "/*/*/*/*[Category=Integration]"`
 - **Categories**: `Unit`, `Integration`, `Component`
+
+**Note:** TUnit uses `--treenode-filter` ([docs](https://tunit.dev/docs/execution/test-filters/)). The `--` separates dotnet test args from TUnit args. Pattern follows the test tree hierarchy: `/Assembly/Namespace/Class/Test` — use `*` wildcards to match any segment (e.g., `/*/*/*/*[Category=Unit]` matches all tests with Category=Unit).
 
 ## Running Tests
 
 ```bash
-dotnet test                                      # All tests
-# Filtered (Unit, Integration, Component)
-dotnet test StockStorage/tests/StockStorageTests/ --filter "TestCategory=Unit"
+dotnet test                                                        # All tests
+dotnet test -- --treenode-filter "/*/*/*/*[Category=Component]"    # Component tests only
+dotnet test -- --treenode-filter "/*/*/ClassName/*"                # All tests in a class
+dotnet test -- --treenode-filter "/*/Namespace/Class/TestMethod"   # Single specific test
 ```
 
 ## Testing Layers
