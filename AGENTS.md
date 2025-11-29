@@ -129,6 +129,17 @@ dotnet test --filter "Category=Integration"     # Integration tests only
 dotnet test --filter "Category=Component"       # Component tests only
 ```
 
+### Bug-Fix Testing Pattern
+
+When fixing a bug, write tests FIRST that assert the expected (correct) behavior:
+
+1. **Write production-grade tests**: Assert what the code SHOULD do, not "reproduce the bug"
+2. **Tests fail initially**: Confirms the bug exists
+3. **Implement the fix**: Tests now pass
+4. **No "bug" comments**: Tests should read like normal feature tests — no "REPRODUCES THE ISSUE" or "CURRENT BUG" language
+
+Example: If clicking a button triggers wrong action, write a test asserting the correct action. Test fails → confirms bug. Fix code → test passes.
+
 ## Documentation
 
 **MUST CHECK after every change:**
