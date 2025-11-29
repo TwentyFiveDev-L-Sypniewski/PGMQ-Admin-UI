@@ -54,8 +54,9 @@ dotnet build                                    # Build solution
 dotnet test                                     # Run all tests
 dotnet format                                   # Apply code style
 
-# Aspire (local development)
-dotnet run --project PgmqAdminUI.AppHost        # Start Aspire dashboard + app
+# Aspire CLI (local development) - auto-discovers AppHost from repo root
+dotnet aspire run                               # Start Aspire dashboard + app
+dotnet aspire run -d                            # With debug logging
 
 # Docker (production deployment)
 docker build -t pgmq-admin-ui ./PgmqAdminUI     # Build standalone container
@@ -157,12 +158,14 @@ Example: If clicking a button triggers wrong action, write a test asserting the 
 1. **Aspire (Local Development)**:
 
    ```bash
-   dotnet run --project PgmqAdminUI.AppHost
+   dotnet aspire run      # Auto-discovers AppHost, starts dashboard + app
    ```
 
-   - Starts Aspire dashboard at https://localhost:17287
+   - Starts Aspire dashboard (URL shown in terminal output)
    - Launches PostgreSQL container with PGMQ extension
    - Runs PgmqAdminUI app
+   - Settings stored in `.aspire/settings.json`
+   - Use `-d` for debug logging, `--wait-for-debugger` to attach debugger
 
 2. **PGMQ Operations**:
 
