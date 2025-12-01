@@ -1,0 +1,73 @@
+.mobile-view {
+    display: none;
+}
+
+.desktop-view {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+}
+
+/* Ensure the grid has a minimum width to prevent crushing columns */
+.desktop-view ::deep .fluent-data-grid {
+    min-width: 800px;
+}
+
+@media (max-width: 768px) {
+    .mobile-view {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .desktop-view {
+        display: none;
+    }
+}
+
+.queue-card {
+    padding: 1rem;
+    width: 100%;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.card-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--neutral-foreground-hint);
+}
+
+.stat-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    border-top: 1px solid var(--neutral-stroke-layer-rest);
+    padding-top: 0.5rem;
+}
