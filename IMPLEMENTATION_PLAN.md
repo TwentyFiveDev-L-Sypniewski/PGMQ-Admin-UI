@@ -8,7 +8,7 @@ This document outlines a high-level implementation plan for a **Blazor Server-Si
 
 - **Backend:** ASP.NET Core 10 (Blazor Server SSR)
 - **Database Access:** Npgmq 1.5.0+ (PGMQ .NET client)
-- **UI Components:** Microsoft Fluent UI Blazor 4.13.1+ (free, open-source)
+- **UI Components:** Microsoft Fluent UI Blazor 4.13.2+ (free, open-source)
 - **Deployment:** Docker container with configurable Postgres connectivity (local or remote)
 
 ---
@@ -73,9 +73,9 @@ This document outlines a high-level implementation plan for a **Blazor Server-Si
 
 | Package                        | Version | Tier     | Pros                                                                | Cons                                  | Docs                                                |
 | ------------------------------ | ------- | -------- | ------------------------------------------------------------------- | ------------------------------------- | --------------------------------------------------- |
-| **Microsoft Fluent UI Blazor** | 4.13.1+ | Free/OSS | Modern design, free, Fluent Design System, DataGrid, buttons, forms | Still evolving (v5 coming early 2025) | [Fluent UI Blazor](https://www.fluentui-blazor.net) |
+| **Microsoft Fluent UI Blazor** | 4.13.2+ | Free/OSS | Modern design, free, Fluent Design System, DataGrid, buttons, forms | Still evolving (v5 coming early 2025) | [Fluent UI Blazor](https://www.fluentui-blazor.net) |
 
-**Selected:** **Microsoft Fluent UI Blazor** 4.13.1+ (free, OSS, actively maintained by Microsoft).
+**Selected:** **Microsoft Fluent UI Blazor** 4.13.2+ (free, OSS, actively maintained by Microsoft).
 
 **Why Fluent UI?**
 
@@ -91,7 +91,7 @@ This document outlines a high-level implementation plan for a **Blazor Server-Si
 <ItemGroup>
   <PackageReference Include="Npgmq" Version="1.5.0" />
   <PackageReference Include="Npgsql.DependencyInjection" Version="10.0.0" />
-  <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.13.1" />
+  <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.13.2" />
   <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.0" />
   <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0" />
 </ItemGroup>
@@ -315,6 +315,7 @@ postgres_data:
 **Current Status:** Steps 1 and 2 complete. Backend service layer fully implemented with comprehensive test coverage. Project is buildable and ready for UI development.
 
 **Progress Summary:**
+
 - ✅ **Step 1:** Project Setup - COMPLETE
 - ✅ **Step 2:** Backend Service Layer - COMPLETE (services, DTOs, metrics, unit tests, integration tests)
 - ⬜ **Step 3:** UI Components - NOT STARTED
@@ -334,8 +335,9 @@ postgres_data:
 - **Docs:** [Create Blazor app](https://learn.microsoft.com/en-us/aspnet/core/blazor/tooling?view=aspnetcore-10.0)
 
 **Implementation Notes:**
+
 - ✅ Full Blazor Server SSR project scaffolded with .NET 10
-- ✅ Npgmq 1.6.0, Microsoft.FluentUI.AspNetCore.Components 4.13.1 installed
+- ✅ Npgmq 1.6.0, Microsoft.FluentUI.AspNetCore.Components 4.13.2 installed
 - ✅ Central package management via Directory.Packages.props
 - ✅ **Vertical Slice Architecture** implemented (Features/Queues, Features/Messages) instead of traditional Services/Models layering
 - ✅ QueueService and MessageService created with NpgmqClient integration
@@ -362,6 +364,7 @@ postgres_data:
 - **Docs:** [Npgmq GitHub](https://github.com/brianpursley/Npgmq), [Npgmq Usage Examples](https://github.com/brianpursley/Npgmq#usage)
 
 **Implementation Notes:**
+
 - ✅ Services use vertical slice architecture (Features/Queues, Features/Messages)
 - ✅ Concrete classes without interfaces (follows AGENTS.md guidance)
 - ✅ LoggerMessage source generators for high-performance logging
@@ -377,13 +380,15 @@ postgres_data:
 **Detailed Implementation Guide:** See [STEP_3_UI_COMPONENTS.md](./STEP_3_UI_COMPONENTS.md)
 
 **Summary:**
-- Build Blazor Server UI using Fluent UI Blazor 4.13.1
+
+- Build Blazor Server UI using Fluent UI Blazor 4.13.2
 - Create pages: Queues Overview, Queue Detail
 - Implement dialogs: Create Queue, Delete Queue, Send Message
 - Add real-time updates using Blazor Server's SignalR connection
 - Write bUnit component tests alongside implementation
 
 **Key Components:**
+
 - [x] Enhanced MainLayout with navigation and status indicator
 - [x] Queues Overview page with FluentDataGrid
 - [x] Queue Detail page with FluentTabs (Messages/Archived/Metrics)
@@ -395,9 +400,11 @@ postgres_data:
 - [ ] bUnit component tests for all major components (deferred - foundational tests exist)
 
 **Backend Changes:**
+
 - [x] Add `GetArchivedMessagesAsync()` to MessageService
 
 **Implementation Notes:**
+
 - ✅ All UI components implemented following STEP_3_UI_COMPONENTS.md
 - ✅ Queues.razor: Full CRUD operations with FluentDataGrid
 - ✅ CreateQueueDialog.razor & DeleteQueueDialog.razor: Form validation and error handling
@@ -415,6 +422,7 @@ postgres_data:
 - ⏳ **Deferred:** Comprehensive bUnit component tests (foundational backend tests cover core functionality)
 
 **Docs:**
+
 - [Fluent UI Blazor](https://www.fluentui-blazor.net)
 - [Blazor Forms & Validation](https://learn.microsoft.com/en-us/aspnet/core/blazor/forms-validation?view=aspnetcore-10.0)
 - [bUnit Documentation](https://bunit.dev)
@@ -431,6 +439,7 @@ postgres_data:
 - **Docs:** [Blazor Performance](https://learn.microsoft.com/en-us/aspnet/core/blazor/performance/?view=aspnetcore-10.0)
 
 **Implementation Notes:**
+
 - ✅ Health checks configured via Aspire service defaults (MapDefaultEndpoints)
 - ✅ Dockerfile includes HEALTHCHECK directive
 - ⏳ **Remaining:** Docker Compose, end-to-end testing, error handling, UI polish

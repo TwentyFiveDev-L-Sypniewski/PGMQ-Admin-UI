@@ -19,8 +19,8 @@ Admin dashboard for PGMQ instances. Aspire for local dev, standalone Docker for 
 ## Tech Stack
 
 - **Framework**: .NET 10, Blazor Server SSR
-- **PGMQ**: Npgmq 1.5.0+
-- **UI**: Fluent UI Blazor 4.13.1+
+- **PGMQ**: Npgmq 1.6.0+
+- **UI**: Fluent UI Blazor 4.13.2+: https://www.fluentui-blazor.net/ and https://github.com/microsoft/fluentui-blazor
 - **Orchestration**: .NET Aspire 13.0 (local dev only)
 - **Database**: PostgreSQL + PGMQ extension
 - **Testing**: TUnit, FakeItEasy, AwesomeAssertions (fork of FluentAssertions), Testcontainers, bUnit, Playwright
