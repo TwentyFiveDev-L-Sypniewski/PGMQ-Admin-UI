@@ -1,0 +1,41 @@
+/* Container query context for responsive header */
+.queue-detail-header {
+    container-type: inline-size;
+    container-name: queue-header;
+    width: 100%;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.header-title {
+    margin: 0;
+    word-break: break-all;
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Stack header vertically on narrow containers */
+@container queue-header (max-width: 500px) {
+    .header-content {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .header-actions {
+        flex-direction: column;
+    }
+
+    .header-actions ::deep fluent-button {
+        width: 100%;
+    }
+}

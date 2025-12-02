@@ -1,0 +1,58 @@
+/* Container query context for responsive metrics grid */
+.metrics-container {
+    container-type: inline-size;
+    container-name: metrics;
+    width: 100%;
+}
+
+.metrics-grid {
+    display: grid;
+    gap: 1rem;
+    /* Default: single column for narrow containers */
+    grid-template-columns: 1fr;
+}
+
+/* Two columns when container is medium width */
+@container metrics (min-width: 500px) {
+    .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Three columns when container is wide */
+@container metrics (min-width: 800px) {
+    .metrics-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.metric-card {
+    padding: 1rem;
+}
+
+.metric-card h4 {
+    margin: 0 0 0.5rem 0;
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+.metric-value-small {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+.metric-label {
+    font-size: 0.875rem;
+    color: var(--neutral-foreground-hint);
+    margin: 0;
+}
+
+.auto-refresh-hint {
+    margin-top: 1rem;
+    color: var(--neutral-foreground-hint);
+}

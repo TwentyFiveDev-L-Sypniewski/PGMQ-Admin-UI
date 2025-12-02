@@ -5,17 +5,19 @@
 <PageTitle>Queue: @QueueName - PGMQ Admin</PageTitle>
 
 <FluentStack Orientation="Orientation.Vertical">
-    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween">
-        <h2>Queue: @QueueName</h2>
-        <FluentStack Orientation="Orientation.Horizontal">
-            <FluentButton Appearance="Appearance.Accent" OnClick="() => _showSendDialog = true">
-                Send Message
-            </FluentButton>
-            <FluentButton Appearance="Appearance.Lightweight" OnClick="GoBack">
-                Back to Queues
-            </FluentButton>
-        </FluentStack>
-    </FluentStack>
+    <div class="queue-detail-header">
+        <div class="header-content">
+            <h2 class="header-title">Queue: @QueueName</h2>
+            <div class="header-actions">
+                <FluentButton Appearance="Appearance.Accent" OnClick="() => _showSendDialog = true">
+                    Send Message
+                </FluentButton>
+                <FluentButton Appearance="Appearance.Lightweight" OnClick="GoBack">
+                    Back to Queues
+                </FluentButton>
+            </div>
+        </div>
+    </div>
 
     <FluentTabs>
         <FluentTab Label="Messages">

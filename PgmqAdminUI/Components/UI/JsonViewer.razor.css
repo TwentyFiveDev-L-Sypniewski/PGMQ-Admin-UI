@@ -1,5 +1,9 @@
+/* Container query context for responsive JSON viewer */
 .json-viewer {
+    container-type: inline-size;
+    container-name: json-viewer;
     font-family: 'Consolas', 'Monaco', monospace;
+    width: 100%;
 }
 
 .json-content {
@@ -8,8 +12,29 @@
     border-radius: 4px;
     overflow-x: auto;
     max-height: 400px;
+    font-size: 0.875rem;
 }
 
 .json-truncated {
     color: var(--neutral-foreground-rest);
+    word-break: break-all;
+}
+
+.json-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+/* Adjust font size and padding for narrow containers */
+@container json-viewer (max-width: 400px) {
+    .json-content {
+        padding: 0.5rem;
+        font-size: 0.75rem;
+        max-height: 300px;
+    }
+
+    .json-truncated {
+        font-size: 0.75rem;
+    }
 }

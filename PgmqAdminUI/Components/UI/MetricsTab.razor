@@ -19,49 +19,41 @@
     }
     else
     {
-        <FluentGrid Spacing="3">
-            <FluentGridItem xs="12" sm="6" md="4">
-                <FluentCard>
+        <div class="metrics-container">
+            <div class="metrics-grid">
+                <FluentCard Class="metric-card">
                     <h4>Queue Length</h4>
-                    <p style="font-size: 2rem; font-weight: bold;">@_stats.QueueLength</p>
-                    <p style="font-size: 0.875rem; color: var(--neutral-foreground-hint);">Current messages</p>
+                    <p class="metric-value">@_stats.QueueLength</p>
+                    <p class="metric-label">Current messages</p>
                 </FluentCard>
-            </FluentGridItem>
 
-            <FluentGridItem xs="12" sm="6" md="4">
-                <FluentCard>
+                <FluentCard Class="metric-card">
                     <h4>Total Messages</h4>
-                    <p style="font-size: 2rem; font-weight: bold;">@_stats.TotalMessages</p>
-                    <p style="font-size: 0.875rem; color: var(--neutral-foreground-hint);">All-time</p>
+                    <p class="metric-value">@_stats.TotalMessages</p>
+                    <p class="metric-label">All-time</p>
                 </FluentCard>
-            </FluentGridItem>
 
-            <FluentGridItem xs="12" sm="6" md="4">
-                <FluentCard>
+                <FluentCard Class="metric-card">
                     <h4>Oldest Message Age</h4>
-                    <p style="font-size: 2rem; font-weight: bold;">@FormatAge(_stats.OldestMsgAgeSec)</p>
-                    <p style="font-size: 0.875rem; color: var(--neutral-foreground-hint);">Seconds</p>
+                    <p class="metric-value">@FormatAge(_stats.OldestMsgAgeSec)</p>
+                    <p class="metric-label">Seconds</p>
                 </FluentCard>
-            </FluentGridItem>
 
-            <FluentGridItem xs="12" sm="6" md="4">
-                <FluentCard>
+                <FluentCard Class="metric-card">
                     <h4>Newest Message Age</h4>
-                    <p style="font-size: 2rem; font-weight: bold;">@FormatAge(_stats.NewestMsgAgeSec)</p>
-                    <p style="font-size: 0.875rem; color: var(--neutral-foreground-hint);">Seconds</p>
+                    <p class="metric-value">@FormatAge(_stats.NewestMsgAgeSec)</p>
+                    <p class="metric-label">Seconds</p>
                 </FluentCard>
-            </FluentGridItem>
 
-            <FluentGridItem xs="12" sm="6" md="4">
-                <FluentCard>
+                <FluentCard Class="metric-card">
                     <h4>Last Scrape</h4>
-                    <p style="font-size: 1.5rem; font-weight: bold;">@_stats.ScrapeTime.ToString("HH:mm:ss")</p>
-                    <p style="font-size: 0.875rem; color: var(--neutral-foreground-hint);">UTC</p>
+                    <p class="metric-value-small">@_stats.ScrapeTime.ToString("HH:mm:ss")</p>
+                    <p class="metric-label">UTC</p>
                 </FluentCard>
-            </FluentGridItem>
-        </FluentGrid>
+            </div>
+        </div>
 
-        <p style="margin-top: 1rem; color: var(--neutral-foreground-hint);">
+        <p class="auto-refresh-hint">
             Auto-refreshing every 30 seconds
         </p>
     }
