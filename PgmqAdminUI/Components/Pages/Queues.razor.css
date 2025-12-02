@@ -19,17 +19,21 @@
         flex-direction: column;
         align-items: center;
         gap: 1rem;
+        width: 100%;
     }
 
     .desktop-view {
         display: none;
     }
+
+    .queue-card {
+        max-width: 400px;
+        margin: 0 auto;
+    }
 }
 
 .queue-card {
     padding: 1rem;
-    width: 100%;
-    max-width: 400px;
 }
 
 .card-header {
