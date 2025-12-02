@@ -4,87 +4,51 @@
 @inject IMessageService NotificationService
 @inject ILogger<ArchivedTab> Logger
 
-<FluentStack Orientation="Orientation.Vertical">
-    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween">
-        <h3>Archived Messages</h3>
-        <FluentButton Appearance="Appearance.Lightweight" OnClick="LoadArchivedMessagesAsync">
-            Refresh
-        </FluentButton>
-    </FluentStack>
-
-    @if (_loading)
-    {
-        <FluentProgressRing />
-    }
-    else if (_messages == null || !_messages.Any())
-    {
-        <FluentMessageBar Intent="MessageIntent.Info">
-            No archived messages.
-        </FluentMessageBar>
-    }
-    else
-    {
-        <div class="archived-container">
-            <div class="desktop-view">
-                <FluentDataGrid Items="@_messages" Pagination="@_pagination" TGridItem="MessageDto">
-                    <PropertyColumn Property="@(m => m.MsgId)" Title="Message ID" Sortable="true" />
-                    <TemplateColumn Title="Message">
-                        <JsonViewer Content="@context.Message" MaxLength="100" />
-                    </TemplateColumn>
-                    <PropertyColumn Property="@(m => m.EnqueuedAt)" Title="Created" Format="yyyy-MM-dd HH:mm:ss" Sortable="true" />
-                    <PropertyColumn Property="@(m => m.ReadCount)" Title="Read Count" Sortable="true" Align="Align.End" />
-                </FluentDataGrid>
+<MessageGridTab TData="MessageDto"
+                Title="Archived Messages"
+                ContainerClass="archived-container"
+                EmptyMessage="No archived messages."
+                LoadDataAsync="LoadDataAsync"
+                ItemsPerPage="20">
+    <DesktopContent>
+        <FluentDataGrid Items="@context.Items" Pagination="@context.Pagination" TGridItem="MessageDto">
+            <PropertyColumn Property="@(m => m.MsgId)" Title="Message ID" Sortable="true" />
+            <TemplateColumn Title="Message" Context="msg">
+                <JsonViewer Content="@msg.Message" MaxLength="100" />
+            </TemplateColumn>
+            <PropertyColumn Property="@(m => m.EnqueuedAt)" Title="Created" Format="yyyy-MM-dd HH:mm:ss" Sortable="true" />
+            <PropertyColumn Property="@(m => m.ReadCount)" Title="Read Count" Sortable="true" Align="Align.End" />
+        </FluentDataGrid>
+    </DesktopContent>
+    <MobileCardContent>
+        <div class="card-header">
+            <span class="card-id">ID: @context.MsgId</span>
+        </div>
+        <div class="card-content">
+            <JsonViewer Content="@context.Message" MaxLength="150" />
+        </div>
+        <div class="card-meta">
+            <div class="meta-item">
+                <span class="meta-label">Created</span>
+                <span class="meta-value">@context.EnqueuedAt.ToString("yyyy-MM-dd HH:mm")</span>
             </div>
-
-            <div class="mobile-view">
-                @foreach (var message in _messages)
-                {
-                    <FluentCard Class="message-card">
-                        <div class="card-header">
-                            <span class="card-id">ID: @message.MsgId</span>
-                        </div>
-                        <div class="card-content">
-                            <JsonViewer Content="@message.Message" MaxLength="150" />
-                        </div>
-                        <div class="card-meta">
-                            <div class="meta-item">
-                                <span class="meta-label">Created</span>
-                                <span class="meta-value">@message.EnqueuedAt.ToString("yyyy-MM-dd HH:mm")</span>
-                            </div>
-                            <div class="meta-item">
-                                <span class="meta-label">Read Count</span>
-                                <span class="meta-value">@message.ReadCount</span>
-                            </div>
-                        </div>
-                    </FluentCard>
-                }
+            <div class="meta-item">
+                <span class="meta-label">Read Count</span>
+                <span class="meta-value">@context.ReadCount</span>
             </div>
         </div>
-
-        <FluentPaginator State="@_pagination" />
-    }
-</FluentStack>
+    </MobileCardContent>
+</MessageGridTab>
 
 @code {
     [Parameter] public required string QueueName { get; set; }
 
-    private IQueryable<MessageDto>? _messages;
-    private bool _loading = true;
-    private readonly PaginationState _pagination = new() { ItemsPerPage = 20 };
-    private int _currentPage = 1;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadArchivedMessagesAsync();
-    }
-
-    private async Task LoadArchivedMessagesAsync()
+    private async Task<(IReadOnlyList<MessageDto> Items, int TotalCount)> LoadDataAsync(int page, int pageSize)
     {
         try
         {
-            _loading = true;
-            var detail = await MessageService.GetArchivedMessagesAsync(QueueName, _currentPage, _pagination.ItemsPerPage);
-            _messages = detail.Messages.AsQueryable();
+            var detail = await MessageService.GetArchivedMessagesAsync(QueueName, page, pageSize);
+            return (detail.Messages, detail.Messages.Count);
         }
         catch (Exception ex)
         {
@@ -93,10 +57,7 @@
                 options.Intent = MessageIntent.Error;
                 options.Body = $"Failed to load archived messages: {ex.Message}";
             });
-        }
-        finally
-        {
-            _loading = false;
+            return (new List<MessageDto>(), 0);
         }
     }
 }

@@ -1,0 +1,76 @@
+@using PgmqAdminUI.Features.Messages
+@using Microsoft.FluentUI.AspNetCore.Components
+@typeparam TData
+
+<FluentStack Orientation="Orientation.Vertical">
+    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween">
+        <h3>@Title</h3>
+        <FluentButton Appearance="Appearance.Lightweight" OnClick="RefreshAsync">
+            Refresh
+        </FluentButton>
+    </FluentStack>
+
+    @if (_loading)
+    {
+        <FluentProgressRing />
+    }
+    else if (_items == null || !_items.Any())
+    {
+        <FluentMessageBar Intent="MessageIntent.Info">
+            @EmptyMessage
+        </FluentMessageBar>
+    }
+    else
+    {
+        <div class="@ContainerClass">
+            <div class="desktop-view">
+                @DesktopContent((_items.AsQueryable(), _pagination))
+            </div>
+
+            <div class="mobile-view">
+                @foreach (var item in _items)
+                {
+                    <FluentCard Class="message-card">
+                        @MobileCardContent(item)
+                    </FluentCard>
+                }
+            </div>
+        </div>
+
+        <FluentPaginator State="@_pagination" />
+    }
+</FluentStack>
+
+@code {
+    [Parameter] public required string Title { get; set; }
+    [Parameter] public required string ContainerClass { get; set; }
+    [Parameter] public required string EmptyMessage { get; set; }
+    [Parameter] public required Func<int, int, Task<(IReadOnlyList<TData> Items, int TotalCount)>> LoadDataAsync { get; set; }
+    [Parameter] public required RenderFragment<(IQueryable<TData> Items, PaginationState Pagination)> DesktopContent { get; set; }
+    [Parameter] public required RenderFragment<TData> MobileCardContent { get; set; }
+    [Parameter] public int ItemsPerPage { get; set; } = 20;
+
+    private IReadOnlyList<TData>? _items;
+    private bool _loading = true;
+    private readonly PaginationState _pagination = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _pagination.ItemsPerPage = ItemsPerPage;
+        await RefreshAsync();
+    }
+
+    public async Task RefreshAsync()
+    {
+        try
+        {
+            _loading = true;
+            var (items, _) = await LoadDataAsync(_pagination.CurrentPageIndex + 1, _pagination.ItemsPerPage);
+            _items = items;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

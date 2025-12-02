@@ -6,118 +6,79 @@
 @inject IMessageService NotificationService
 @inject ILogger<MessagesTab> Logger
 
-<FluentStack Orientation="Orientation.Vertical">
-    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween">
-        <h3>Messages</h3>
-        <FluentButton Appearance="Appearance.Lightweight" OnClick="LoadMessagesAsync">
-            Refresh
-        </FluentButton>
-    </FluentStack>
-
-    @if (_loading)
-    {
-        <FluentProgressRing />
-    }
-    else if (_messages == null || !_messages.Any())
-    {
-        <FluentMessageBar Intent="MessageIntent.Info">
-            No messages in this queue.
-        </FluentMessageBar>
-    }
-    else
-    {
-        <div class="messages-container">
-            <div class="desktop-view">
-                <FluentDataGrid Items="@_messages" Pagination="@_pagination" TGridItem="MessageDto">
-                    <PropertyColumn Property="@(m => m.MsgId)" Title="Message ID" Sortable="true" />
-                    <TemplateColumn Title="Message">
-                        <JsonViewer Content="@context.Message" MaxLength="100" />
-                    </TemplateColumn>
-                    <PropertyColumn Property="@(m => m.Vt)" Title="Visibility Timeout" Sortable="true" />
-                    <PropertyColumn Property="@(m => m.EnqueuedAt)" Title="Created" Format="yyyy-MM-dd HH:mm:ss" Sortable="true" />
-                    <PropertyColumn Property="@(m => m.ReadCount)" Title="Read Count" Sortable="true" Align="Align.End" />
-                    <TemplateColumn Title="Actions">
-                        <FluentButton Appearance="Appearance.Lightweight" OnClick="() => DeleteMessage(context.MsgId)"
-                                      Title="Delete message">
-                            <FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
-                        </FluentButton>
-                        <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ArchiveMessage(context.MsgId)"
-                                      Title="Archive message">
-                            <FluentIcon Value="@(new Icons.Regular.Size16.Archive())" />
-                        </FluentButton>
-                    </TemplateColumn>
-                </FluentDataGrid>
+<MessageGridTab @ref="_gridTab"
+                TData="MessageDto"
+                Title="Messages"
+                ContainerClass="messages-container"
+                EmptyMessage="No messages in this queue."
+                LoadDataAsync="LoadDataAsync"
+                ItemsPerPage="20">
+    <DesktopContent>
+        <FluentDataGrid Items="@context.Items" Pagination="@context.Pagination" TGridItem="MessageDto">
+            <PropertyColumn Property="@(m => m.MsgId)" Title="Message ID" Sortable="true" />
+            <TemplateColumn Title="Message" Context="msg">
+                <JsonViewer Content="@msg.Message" MaxLength="100" />
+            </TemplateColumn>
+            <PropertyColumn Property="@(m => m.Vt)" Title="Visibility Timeout" Sortable="true" />
+            <PropertyColumn Property="@(m => m.EnqueuedAt)" Title="Created" Format="yyyy-MM-dd HH:mm:ss" Sortable="true" />
+            <PropertyColumn Property="@(m => m.ReadCount)" Title="Read Count" Sortable="true" Align="Align.End" />
+            <TemplateColumn Title="Actions" Context="msg">
+                <FluentButton Appearance="Appearance.Lightweight" OnClick="() => DeleteMessage(msg.MsgId)"
+                              Title="Delete message">
+                    <FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
+                </FluentButton>
+                <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ArchiveMessage(msg.MsgId)"
+                              Title="Archive message">
+                    <FluentIcon Value="@(new Icons.Regular.Size16.Archive())" />
+                </FluentButton>
+            </TemplateColumn>
+        </FluentDataGrid>
+    </DesktopContent>
+    <MobileCardContent>
+        <div class="card-header">
+            <span class="card-id">ID: @context.MsgId</span>
+        </div>
+        <div class="card-content">
+            <JsonViewer Content="@context.Message" MaxLength="150" />
+        </div>
+        <div class="card-meta">
+            <div class="meta-item">
+                <span class="meta-label">Visibility Timeout</span>
+                <span class="meta-value">@context.Vt</span>
             </div>
-
-            <div class="mobile-view">
-                @foreach (var message in _messages)
-                {
-                    <FluentCard Class="message-card">
-                        <div class="card-header">
-                            <span class="card-id">ID: @message.MsgId</span>
-                        </div>
-                        <div class="card-content">
-                            <JsonViewer Content="@message.Message" MaxLength="150" />
-                        </div>
-                        <div class="card-meta">
-                            <div class="meta-item">
-                                <span class="meta-label">Visibility Timeout</span>
-                                <span class="meta-value">@message.Vt</span>
-                            </div>
-                            <div class="meta-item">
-                                <span class="meta-label">Created</span>
-                                <span class="meta-value">@message.EnqueuedAt.ToString("yyyy-MM-dd HH:mm")</span>
-                            </div>
-                            <div class="meta-item">
-                                <span class="meta-label">Read Count</span>
-                                <span class="meta-value">@message.ReadCount</span>
-                            </div>
-                        </div>
-                        <div class="card-actions">
-                            <FluentButton Appearance="Appearance.Lightweight" OnClick="() => DeleteMessage(message.MsgId)"
-                                          Title="Delete message">
-                                <FluentIcon Value="@(new Icons.Regular.Size16.Delete())" /> Delete
-                            </FluentButton>
-                            <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ArchiveMessage(message.MsgId)"
-                                          Title="Archive message">
-                                <FluentIcon Value="@(new Icons.Regular.Size16.Archive())" /> Archive
-                            </FluentButton>
-                        </div>
-                    </FluentCard>
-                }
+            <div class="meta-item">
+                <span class="meta-label">Created</span>
+                <span class="meta-value">@context.EnqueuedAt.ToString("yyyy-MM-dd HH:mm")</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Read Count</span>
+                <span class="meta-value">@context.ReadCount</span>
             </div>
         </div>
-
-        <FluentPaginator State="@_pagination" />
-    }
-</FluentStack>
+        <div class="card-actions">
+            <FluentButton Appearance="Appearance.Lightweight" OnClick="() => DeleteMessage(context.MsgId)"
+                          Title="Delete message">
+                <FluentIcon Value="@(new Icons.Regular.Size16.Delete())" /> Delete
+            </FluentButton>
+            <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ArchiveMessage(context.MsgId)"
+                          Title="Archive message">
+                <FluentIcon Value="@(new Icons.Regular.Size16.Archive())" /> Archive
+            </FluentButton>
+        </div>
+    </MobileCardContent>
+</MessageGridTab>
 
 @code {
     [Parameter] public required string QueueName { get; set; }
 
-    private IQueryable<MessageDto>? _messages;
-    private bool _loading = true;
-    private readonly PaginationState _pagination = new() { ItemsPerPage = 20 };
-    private int _currentPage = 1;
+    private MessageGridTab<MessageDto>? _gridTab;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadMessagesAsync();
-    }
-
-    protected override async Task OnParametersSetAsync()
-    {
-        if (_messages == null)
-            await LoadMessagesAsync();
-    }
-
-    private async Task LoadMessagesAsync()
+    private async Task<(IReadOnlyList<MessageDto> Items, int TotalCount)> LoadDataAsync(int page, int pageSize)
     {
         try
         {
-            _loading = true;
-            var detail = await QueueService.GetQueueDetailAsync(QueueName, _currentPage, _pagination.ItemsPerPage);
-            _messages = detail.Messages.AsQueryable();
+            var detail = await QueueService.GetQueueDetailAsync(QueueName, page, pageSize);
+            return (detail.Messages, detail.Messages.Count);
         }
         catch (Exception ex)
         {
@@ -126,10 +87,7 @@
                 options.Intent = MessageIntent.Error;
                 options.Body = $"Failed to load messages: {ex.Message}";
             });
-        }
-        finally
-        {
-            _loading = false;
+            return (new List<MessageDto>(), 0);
         }
     }
 
@@ -142,7 +100,7 @@
                 options.Intent = MessageIntent.Success;
                 options.Body = $"Message {msgId} deleted successfully";
             });
-            await LoadMessagesAsync();
+            await _gridTab?.RefreshAsync()!;
         }
         catch (Exception ex)
         {
@@ -163,7 +121,7 @@
                 options.Intent = MessageIntent.Success;
                 options.Body = $"Message {msgId} archived successfully";
             });
-            await LoadMessagesAsync();
+            await _gridTab?.RefreshAsync()!;
         }
         catch (Exception ex)
         {
