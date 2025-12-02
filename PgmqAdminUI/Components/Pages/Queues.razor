@@ -29,54 +29,56 @@
     }
     else
     {
-        <div class="desktop-view">
-            <FluentDataGrid Items="@_queues" TGridItem="QueueDto" GridTemplateColumns="minmax(150px, 2fr) minmax(80px, 1fr) minmax(80px, 1fr) minmax(80px, 1fr) minmax(200px, 2fr)" MultiLine="true">
-                <PropertyColumn Property="@(q => q.Name)" Sortable="true" Title="Queue Name" />
-                <PropertyColumn Property="@(q => q.TotalMessages)" Sortable="true" Title="Total" Align="Align.End" />
-                <PropertyColumn Property="@(q => q.InFlightMessages)" Sortable="true" Title="In-Flight" Align="Align.End" />
-                <PropertyColumn Property="@(q => q.ArchivedMessages)" Sortable="true" Title="Archived" Align="Align.End" />
-                <TemplateColumn Title="Actions">
-                    <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ViewDetails(context.Name)">
-                        View Details
-                    </FluentButton>
-                    <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ShowDeleteDialog(context.Name)">
-                        Delete
-                    </FluentButton>
-                </TemplateColumn>
-            </FluentDataGrid>
-        </div>
-
-        <div class="mobile-view">
-            @foreach (var queue in _queues)
-            {
-                <FluentCard Class="queue-card">
-                    <div class="card-header">
-                        <span style="word-break: break-all;">@queue.Name</span>
-                    </div>
-                    <div class="card-stats">
-                        <div class="stat-item">
-                            <span class="stat-value">@queue.TotalMessages</span>
-                            <span class="stat-label">Total</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value">@queue.InFlightMessages</span>
-                            <span class="stat-label">In-Flight</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value">@queue.ArchivedMessages</span>
-                            <span class="stat-label">Archived</span>
-                        </div>
-                    </div>
-                    <div class="card-actions">
-                        <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ViewDetails(queue.Name)">
+        <div class="queues-container">
+            <div class="desktop-view">
+                <FluentDataGrid Items="@_queues" TGridItem="QueueDto" GridTemplateColumns="minmax(150px, 2fr) minmax(80px, 1fr) minmax(80px, 1fr) minmax(80px, 1fr) minmax(200px, 2fr)" MultiLine="true">
+                    <PropertyColumn Property="@(q => q.Name)" Sortable="true" Title="Queue Name" />
+                    <PropertyColumn Property="@(q => q.TotalMessages)" Sortable="true" Title="Total" Align="Align.End" />
+                    <PropertyColumn Property="@(q => q.InFlightMessages)" Sortable="true" Title="In-Flight" Align="Align.End" />
+                    <PropertyColumn Property="@(q => q.ArchivedMessages)" Sortable="true" Title="Archived" Align="Align.End" />
+                    <TemplateColumn Title="Actions">
+                        <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ViewDetails(context.Name)">
                             View Details
                         </FluentButton>
-                        <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ShowDeleteDialog(queue.Name)">
+                        <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ShowDeleteDialog(context.Name)">
                             Delete
                         </FluentButton>
-                    </div>
-                </FluentCard>
-            }
+                    </TemplateColumn>
+                </FluentDataGrid>
+            </div>
+
+            <div class="mobile-view">
+                @foreach (var queue in _queues)
+                {
+                    <FluentCard Class="queue-card">
+                        <div class="card-header">
+                            <span style="word-break: break-all;">@queue.Name</span>
+                        </div>
+                        <div class="card-stats">
+                            <div class="stat-item">
+                                <span class="stat-value">@queue.TotalMessages</span>
+                                <span class="stat-label">Total</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">@queue.InFlightMessages</span>
+                                <span class="stat-label">In-Flight</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">@queue.ArchivedMessages</span>
+                                <span class="stat-label">Archived</span>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ViewDetails(queue.Name)">
+                                View Details
+                            </FluentButton>
+                            <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ShowDeleteDialog(queue.Name)">
+                                Delete
+                            </FluentButton>
+                        </div>
+                    </FluentCard>
+                }
+            </div>
         </div>
     }
 </FluentStack>

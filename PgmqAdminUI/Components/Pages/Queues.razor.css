@@ -1,3 +1,10 @@
+/* Container query context for responsive switching */
+.queues-container {
+    container-type: inline-size;
+    container-name: queues;
+    width: 100%;
+}
+
 .mobile-view {
     display: none;
 }
@@ -13,7 +20,8 @@
     min-width: 800px;
 }
 
-@media (max-width: 768px) {
+/* Switch to cards when container can't fit the table */
+@container queues (max-width: 850px) {
     .mobile-view {
         display: flex;
         flex-direction: column;
