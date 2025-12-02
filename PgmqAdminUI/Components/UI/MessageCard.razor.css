@@ -1,0 +1,52 @@
+/* MessageCard component styles - CSS isolation scopes these to MessageCard instances */
+
+.message-card {
+    padding: 1rem;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.card-id {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--accent-fill-rest);
+}
+
+.card-content {
+    margin-bottom: 0.75rem;
+}
+
+.card-meta {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+}
+
+.meta-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.meta-label {
+    font-size: 0.75rem;
+    color: var(--neutral-foreground-hint);
+}
+
+.meta-value {
+    font-weight: 500;
+}
+
+.card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    border-top: 1px solid var(--neutral-stroke-layer-rest);
+    padding-top: 0.75rem;
+}
