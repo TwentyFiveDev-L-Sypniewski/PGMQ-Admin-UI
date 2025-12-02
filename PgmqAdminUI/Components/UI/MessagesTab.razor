@@ -35,36 +35,19 @@
         </FluentDataGrid>
     </DesktopContent>
     <MobileCardContent>
-        <div class="card-header">
-            <span class="card-id">ID: @context.MsgId</span>
-        </div>
-        <div class="card-content">
-            <JsonViewer Content="@context.Message" MaxLength="150" />
-        </div>
-        <div class="card-meta">
-            <div class="meta-item">
-                <span class="meta-label">Visibility Timeout</span>
-                <span class="meta-value">@context.Vt</span>
-            </div>
-            <div class="meta-item">
-                <span class="meta-label">Created</span>
-                <span class="meta-value">@context.EnqueuedAt.ToString("yyyy-MM-dd HH:mm")</span>
-            </div>
-            <div class="meta-item">
-                <span class="meta-label">Read Count</span>
-                <span class="meta-value">@context.ReadCount</span>
-            </div>
-        </div>
-        <div class="card-actions">
-            <FluentButton Appearance="Appearance.Lightweight" OnClick="() => DeleteMessage(context.MsgId)"
-                          Title="Delete message">
-                <FluentIcon Value="@(new Icons.Regular.Size16.Delete())" /> Delete
-            </FluentButton>
-            <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ArchiveMessage(context.MsgId)"
-                          Title="Archive message">
-                <FluentIcon Value="@(new Icons.Regular.Size16.Archive())" /> Archive
-            </FluentButton>
-        </div>
+        <MessageCard Data="context"
+                     Type="MessageCardType.Message">
+            <Actions>
+                <FluentButton Appearance="Appearance.Lightweight" OnClick="() => DeleteMessage(context.MsgId)"
+                              Title="Delete message">
+                    <FluentIcon Value="@(new Icons.Regular.Size16.Delete())" /> Delete
+                </FluentButton>
+                <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ArchiveMessage(context.MsgId)"
+                              Title="Archive message">
+                    <FluentIcon Value="@(new Icons.Regular.Size16.Archive())" /> Archive
+                </FluentButton>
+            </Actions>
+        </MessageCard>
     </MobileCardContent>
 </MessageGridTab>
 

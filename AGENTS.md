@@ -28,7 +28,7 @@ Admin dashboard for PGMQ instances. Aspire for local dev, standalone Docker for 
 ## Key Commands
 
 ```bash
-dotnet build && dotnet test && dotnet format    # Quality gates
+dotnet build && dotnet test    # Quality gates
 dotnet aspire run                               # Local dev (auto-discovers AppHost)
 docker build -t pgmq-admin-ui ./PgmqAdminUI     # Production build
 ```

@@ -1,0 +1,41 @@
+@using PgmqAdminUI.Features.Messages
+@using Microsoft.FluentUI.AspNetCore.Components
+@using PgmqAdminUI.Components.UI
+
+<FluentCard Class="message-card">
+    <div class="card-header">
+        <span class="card-id">ID: @Data.MsgId</span>
+    </div>
+    <div class="card-content">
+        <JsonViewer Content="@Data.Message" MaxLength="150" />
+    </div>
+    <div class="card-meta">
+        @if (Type != MessageCardType.Archived)
+        {
+            <div class="meta-item">
+                <span class="meta-label">Visibility Timeout</span>
+                <span class="meta-value">@Data.Vt</span>
+            </div>
+        }
+        <div class="meta-item">
+            <span class="meta-label">Created</span>
+            <span class="meta-value">@Data.EnqueuedAt.ToString("yyyy-MM-dd HH:mm")</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Read Count</span>
+            <span class="meta-value">@Data.ReadCount</span>
+        </div>
+    </div>
+    @if (Actions != null)
+    {
+        <div class="card-actions">
+            @Actions
+        </div>
+    }
+</FluentCard>
+
+@code {
+    [Parameter] public required MessageDto Data { get; set; }
+    [Parameter] public MessageCardType Type { get; set; } = MessageCardType.Message;
+    [Parameter] public RenderFragment? Actions { get; set; }
+}

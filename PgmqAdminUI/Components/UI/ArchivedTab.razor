@@ -21,22 +21,8 @@
         </FluentDataGrid>
     </DesktopContent>
     <MobileCardContent>
-        <div class="card-header">
-            <span class="card-id">ID: @context.MsgId</span>
-        </div>
-        <div class="card-content">
-            <JsonViewer Content="@context.Message" MaxLength="150" />
-        </div>
-        <div class="card-meta">
-            <div class="meta-item">
-                <span class="meta-label">Created</span>
-                <span class="meta-value">@context.EnqueuedAt.ToString("yyyy-MM-dd HH:mm")</span>
-            </div>
-            <div class="meta-item">
-                <span class="meta-label">Read Count</span>
-                <span class="meta-value">@context.ReadCount</span>
-            </div>
-        </div>
+        <MessageCard Data="context"
+                     Type="MessageCardType.Archived" />
     </MobileCardContent>
 </MessageGridTab>
 

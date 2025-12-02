@@ -30,9 +30,7 @@
             <div class="mobile-view">
                 @foreach (var item in _items)
                 {
-                    <FluentCard Class="message-card">
-                        @MobileCardContent(item)
-                    </FluentCard>
+                    @MobileCardContent(item)
                 }
             </div>
         </div>
