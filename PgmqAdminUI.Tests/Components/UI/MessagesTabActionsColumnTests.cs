@@ -189,11 +189,15 @@ public class MessagesTabActionsColumnTests : FluentTestBase
             () => !cut.Markup.Contains("fluent-progress-ring"),
             TimeSpan.FromSeconds(3));
 
-        // Assert - each message row should have its own Delete and Archive buttons
+        // Assert - bUnit renders both desktop and mobile views since container queries don't work in tests
+        // In a real browser, only one view is displayed at a time based on container width
+        // So we verify that there are buttons present, and verify the count accounts for both views
         var deleteButtons = cut.FindAll("fluent-button[title='Delete message']");
         var archiveButtons = cut.FindAll("fluent-button[title='Archive message']");
 
-        deleteButtons.Count.Should().Be(3, "Each message row should have a Delete button");
-        archiveButtons.Count.Should().Be(3, "Each message row should have an Archive button");
+        // Desktop view has 3 buttons per message (1 per row), mobile view has 2 buttons per message (delete + archive in card)
+        // Since container queries don't work in bUnit, we expect buttons from both views (6 total for 3 messages)
+        deleteButtons.Count.Should().Be(6, "Should have Delete buttons from both desktop grid (3) and mobile cards (3)");
+        archiveButtons.Count.Should().Be(6, "Should have Archive buttons from both desktop grid (3) and mobile cards (3)");
     }
 }

@@ -1,5 +1,5 @@
 /* Container query context for responsive switching */
-/* NOTE: Breakpoint (550px) should be ~50px more than table min-width (500px) */
+/* NOTE: Only switch to cards on very narrow mobile screens */
 .archived-container {
     container-type: inline-size;
     container-name: archived;
@@ -21,8 +21,8 @@
     min-width: 500px;
 }
 
-/* Switch to cards when container can't fit the table */
-@container archived (max-width: 550px) {
+/* Switch to cards only on mobile phones */
+@container archived (max-width: 400px) {
     .mobile-view {
         display: flex;
         flex-direction: column;

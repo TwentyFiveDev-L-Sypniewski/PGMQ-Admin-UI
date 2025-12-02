@@ -1,5 +1,5 @@
 /* Container query context for responsive switching */
-/* NOTE: Breakpoint (700px) should be ~50px more than table min-width (650px) */
+/* NOTE: Only switch to cards on very narrow mobile screens */
 .messages-container {
     container-type: inline-size;
     container-name: messages;
@@ -21,8 +21,8 @@
     min-width: 650px;
 }
 
-/* Switch to cards when container can't fit the table */
-@container messages (max-width: 700px) {
+/* Switch to cards only on mobile phones */
+@container messages (max-width: 400px) {
     .mobile-view {
         display: flex;
         flex-direction: column;
