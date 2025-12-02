@@ -26,25 +26,67 @@
     }
     else
     {
-        <FluentDataGrid Items="@_messages" Pagination="@_pagination" TGridItem="MessageDto">
-            <PropertyColumn Property="@(m => m.MsgId)" Title="Message ID" Sortable="true" />
-            <TemplateColumn Title="Message">
-                <JsonViewer Content="@context.Message" MaxLength="100" />
-            </TemplateColumn>
-            <PropertyColumn Property="@(m => m.Vt)" Title="Visibility Timeout" Sortable="true" />
-            <PropertyColumn Property="@(m => m.EnqueuedAt)" Title="Created" Format="yyyy-MM-dd HH:mm:ss" Sortable="true" />
-            <PropertyColumn Property="@(m => m.ReadCount)" Title="Read Count" Sortable="true" Align="Align.End" />
-            <TemplateColumn Title="Actions">
-                <FluentButton Appearance="Appearance.Lightweight" OnClick="() => DeleteMessage(context.MsgId)"
-                              Title="Delete message">
-                    <FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
-                </FluentButton>
-                <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ArchiveMessage(context.MsgId)"
-                              Title="Archive message">
-                    <FluentIcon Value="@(new Icons.Regular.Size16.Archive())" />
-                </FluentButton>
-            </TemplateColumn>
-        </FluentDataGrid>
+        <div class="messages-container">
+            <div class="desktop-view">
+                <FluentDataGrid Items="@_messages" Pagination="@_pagination" TGridItem="MessageDto">
+                    <PropertyColumn Property="@(m => m.MsgId)" Title="Message ID" Sortable="true" />
+                    <TemplateColumn Title="Message">
+                        <JsonViewer Content="@context.Message" MaxLength="100" />
+                    </TemplateColumn>
+                    <PropertyColumn Property="@(m => m.Vt)" Title="Visibility Timeout" Sortable="true" />
+                    <PropertyColumn Property="@(m => m.EnqueuedAt)" Title="Created" Format="yyyy-MM-dd HH:mm:ss" Sortable="true" />
+                    <PropertyColumn Property="@(m => m.ReadCount)" Title="Read Count" Sortable="true" Align="Align.End" />
+                    <TemplateColumn Title="Actions">
+                        <FluentButton Appearance="Appearance.Lightweight" OnClick="() => DeleteMessage(context.MsgId)"
+                                      Title="Delete message">
+                            <FluentIcon Value="@(new Icons.Regular.Size16.Delete())" />
+                        </FluentButton>
+                        <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ArchiveMessage(context.MsgId)"
+                                      Title="Archive message">
+                            <FluentIcon Value="@(new Icons.Regular.Size16.Archive())" />
+                        </FluentButton>
+                    </TemplateColumn>
+                </FluentDataGrid>
+            </div>
+
+            <div class="mobile-view">
+                @foreach (var message in _messages)
+                {
+                    <FluentCard Class="message-card">
+                        <div class="card-header">
+                            <span class="card-id">ID: @message.MsgId</span>
+                        </div>
+                        <div class="card-content">
+                            <JsonViewer Content="@message.Message" MaxLength="150" />
+                        </div>
+                        <div class="card-meta">
+                            <div class="meta-item">
+                                <span class="meta-label">Visibility Timeout</span>
+                                <span class="meta-value">@message.Vt</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Created</span>
+                                <span class="meta-value">@message.EnqueuedAt.ToString("yyyy-MM-dd HH:mm")</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Read Count</span>
+                                <span class="meta-value">@message.ReadCount</span>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <FluentButton Appearance="Appearance.Lightweight" OnClick="() => DeleteMessage(message.MsgId)"
+                                          Title="Delete message">
+                                <FluentIcon Value="@(new Icons.Regular.Size16.Delete())" /> Delete
+                            </FluentButton>
+                            <FluentButton Appearance="Appearance.Lightweight" OnClick="() => ArchiveMessage(message.MsgId)"
+                                          Title="Archive message">
+                                <FluentIcon Value="@(new Icons.Regular.Size16.Archive())" /> Archive
+                            </FluentButton>
+                        </div>
+                    </FluentCard>
+                }
+            </div>
+        </div>
 
         <FluentPaginator State="@_pagination" />
     }
