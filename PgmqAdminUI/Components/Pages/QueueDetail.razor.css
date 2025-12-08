@@ -18,6 +18,11 @@
     word-break: break-all;
 }
 
+.page-header {
+    font-weight: 600;
+    margin-bottom: 24px;
+}
+
 .header-actions {
     display: flex;
     gap: 0.5rem;

@@ -40,6 +40,11 @@
     }
 }
 
+.page-header {
+    font-weight: 600;
+    margin-bottom: 24px;
+}
+
 .queue-card {
     padding: 1rem;
 }
