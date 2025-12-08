@@ -5,7 +5,7 @@
 
 ## Project Overview
 
-Admin dashboard for PGMQ instances. Aspire for local dev, standalone Docker for production.
+Admin dashboard for PGMQ instances. Aspire for local dev with PostgreSQL, standalone Docker for production.
 
 ## Repository Structure
 
@@ -29,7 +29,7 @@ Admin dashboard for PGMQ instances. Aspire for local dev, standalone Docker for 
 
 ```bash
 dotnet build && dotnet test    # Quality gates
-dotnet aspire run                               # Local dev (auto-discovers AppHost)
+dotnet aspire run                               # Run local dev environment with dashboard + PostgreSQL
 docker build -t pgmq-admin-ui ./PgmqAdminUI     # Production build
 ```
 
@@ -104,11 +104,13 @@ See [PgmqAdminUI.Tests/AGENTS.md](PgmqAdminUI.Tests/AGENTS.md) for test commands
 **Husky.Net** manages pre-commit hooks to enforce quality gates automatically.
 
 **Setup** (required after cloning):
+
 ```bash
 dotnet husky install
 ```
 
 **Pre-commit checks**:
+
 1. Build validation
 2. All tests pass
 3. Code formatting (staged files only)
