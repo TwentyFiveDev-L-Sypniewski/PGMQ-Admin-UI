@@ -21,7 +21,7 @@
 }
 
 /* Switch to cards when container can't fit the table */
-@container queues (max-width: 700px) {
+@container queues (max-width: 500px) {
     .mobile-view {
         display: flex;
         flex-direction: column;
