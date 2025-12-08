@@ -113,12 +113,10 @@ dotnet husky install
 
 1. Build validation
 2. All tests pass
-3. Code formatting (staged files only)
-
-Configuration: `.husky/task-runner.json` | Documentation: `.husky/README.md`
 
 ## Rules
 
 - Quality gates run automatically via pre-commit hooks (Husky.Net)
 - Update `AGENTS.md` if patterns change
 - No temp docs (`IMPLEMENTATION.md`, `TASKS.md`). Use `AGENTS.md` and `IMPLEMENTATION_PLAN.md` only
+- When planning omit time estimates like "2 hours" or "1 day"
