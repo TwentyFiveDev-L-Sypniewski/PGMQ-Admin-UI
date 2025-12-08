@@ -18,7 +18,7 @@
 }
 
 /* Switch to cards on mobile screens (max-width: 768px covers tablets and phones) */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .mobile-view {
         display: flex;
         flex-direction: column;
